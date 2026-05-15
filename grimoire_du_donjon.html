@@ -1,0 +1,885 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=MedievalSharp&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1a1208;
+    --ink-faded: #4a3828;
+    --parchment: #f5ead0;
+    --parchment-dark: #e8d5a3;
+    --parchment-deeper: #d4b97a;
+    --accent: #8b1a1a;
+    --accent-gold: #8b6914;
+    --border-ornate: 2px solid #8b6914;
+  }
+  body { background: transparent; }
+  #app {
+    font-family: 'Palatino Linotype', Palatino, serif;
+    background: #1a1208;
+    border: 3px solid #8b6914;
+    border-radius: 4px;
+    padding: 0;
+    min-height: 600px;
+    overflow: hidden;
+    position: relative;
+  }
+  .grimoire-header {
+    background: #1a1208;
+    border-bottom: 2px solid #8b6914;
+    padding: 16px 20px 12px;
+    text-align: center;
+    position: relative;
+  }
+  .grimoire-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #d4a843;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    font-variant: small-caps;
+  }
+  .grimoire-subtitle {
+    font-size: 11px;
+    color: #8b6914;
+    letter-spacing: 3px;
+    margin-top: 2px;
+    text-transform: uppercase;
+  }
+  .ornament { color: #8b6914; font-size: 14px; margin: 0 8px; }
+  .tabs {
+    display: flex;
+    background: #120d05;
+    border-bottom: 2px solid #8b6914;
+  }
+  .tab {
+    flex: 1;
+    padding: 10px 4px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #6b5020;
+    border-right: 1px solid #3a2a10;
+    transition: all 0.2s;
+    font-variant: small-caps;
+  }
+  .tab:last-child { border-right: none; }
+  .tab:hover { background: #1e1508; color: #d4a843; }
+  .tab.active { background: #f5ead0; color: #1a1208; font-weight: 700; }
+  .tab i { display: block; font-size: 16px; margin-bottom: 3px; }
+  .panel { display: none; background: #f5ead0; padding: 20px; min-height: 500px; }
+  .panel.active { display: block; }
+  .section-title {
+    font-size: 14px;
+    font-variant: small-caps;
+    letter-spacing: 2px;
+    color: #8b1a1a;
+    border-bottom: 1px solid #8b6914;
+    padding-bottom: 4px;
+    margin-bottom: 14px;
+    font-weight: 700;
+  }
+  .controls-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+  .control-group { display: flex; flex-direction: column; gap: 4px; }
+  .control-group label {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #6b5020;
+    font-weight: 700;
+  }
+  select {
+    background: #1a1208;
+    color: #d4a843;
+    border: 1px solid #8b6914;
+    padding: 6px 10px;
+    font-family: inherit;
+    font-size: 12px;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+  .btn {
+    background: #8b1a1a;
+    color: #f5ead0;
+    border: 1px solid #5a1010;
+    padding: 8px 18px;
+    font-family: inherit;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    font-variant: small-caps;
+    transition: all 0.15s;
+  }
+  .btn:hover { background: #a82020; }
+  .btn-gold {
+    background: #8b6914;
+    border-color: #6b5010;
+    color: #1a1208;
+  }
+  .btn-gold:hover { background: #a88020; }
+  .btn-sm { padding: 5px 12px; font-size: 11px; }
+  .table-container {
+    background: #ede0b8;
+    border: 1px solid #c4a060;
+    border-radius: 2px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .table-header {
+    background: #1a1208;
+    color: #d4a843;
+    padding: 6px 12px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-variant: small-caps;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  td, th {
+    padding: 5px 10px;
+    border-bottom: 1px solid #c4a060;
+    text-align: left;
+    color: #1a1208;
+  }
+  th {
+    background: #d4b97a;
+    font-weight: 700;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #4a3010;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr.highlighted { background: #f5d080 !important; }
+  tr:nth-child(even) { background: #e8d5a3; }
+  .result-box {
+    background: #1a1208;
+    border: 2px solid #8b6914;
+    border-radius: 2px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .result-box h3 {
+    color: #d4a843;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-variant: small-caps;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #8b6914;
+    padding-bottom: 6px;
+  }
+  .result-room {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .room-card {
+    background: #f5ead0;
+    border-left: 3px solid #8b1a1a;
+    padding: 8px 12px;
+    border-radius: 0 2px 2px 0;
+  }
+  .room-card .room-num { font-size: 10px; color: #8b1a1a; font-weight: 700; letter-spacing: 1px; }
+  .room-card .room-name { font-size: 13px; color: #1a1208; font-weight: 700; margin: 1px 0; }
+  .room-card .room-desc { font-size: 11px; color: #4a3828; font-style: italic; }
+  .room-card .room-exits { font-size: 10px; color: #6b5020; margin-top: 3px; }
+  .monster-tag {
+    display: inline-block;
+    background: #8b1a1a;
+    color: #f5ead0;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 2px;
+    margin: 2px 2px 0 0;
+    font-variant: small-caps;
+    letter-spacing: 0.5px;
+  }
+  .treasure-tag {
+    display: inline-block;
+    background: #8b6914;
+    color: #1a1208;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 2px;
+    margin: 2px 2px 0 0;
+    font-variant: small-caps;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .diff-badge {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    font-variant: small-caps;
+  }
+  .diff-faible { background: #c0dd97; color: #27500a; }
+  .diff-moyen { background: #fac775; color: #633806; }
+  .diff-elite { background: #f09595; color: #501313; }
+  .diff-boss { background: #1a1208; color: #d4a843; }
+  .quest-block {
+    background: #ede0b8;
+    border: 1px solid #c4a060;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    border-radius: 2px;
+  }
+  .quest-block .qlabel { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: #8b1a1a; font-weight: 700; }
+  .quest-block .qval { font-size: 13px; color: #1a1208; margin-top: 2px; font-style: italic; }
+  .export-area {
+    background: #ede0b8;
+    border: 1px dashed #c4a060;
+    border-radius: 2px;
+    padding: 16px;
+    font-size: 11px;
+    color: #4a3828;
+    white-space: pre-wrap;
+    line-height: 1.8;
+    font-family: 'Courier New', monospace;
+    max-height: 260px;
+    overflow-y: auto;
+    margin-bottom: 12px;
+  }
+  .dice-anim {
+    display: inline-block;
+    font-size: 18px;
+    animation: spin 0.4s ease-out;
+  }
+  @keyframes spin { 0%{transform:rotate(0deg) scale(0.5);opacity:0} 100%{transform:rotate(360deg) scale(1);opacity:1} }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 500px) { .two-col { grid-template-columns: 1fr; } }
+  .divider {
+    text-align: center;
+    color: #8b6914;
+    font-size: 12px;
+    letter-spacing: 4px;
+    margin: 8px 0;
+  }
+  .tip {
+    font-size: 11px;
+    color: #6b5020;
+    font-style: italic;
+    margin-bottom: 10px;
+    padding: 6px 10px;
+    border-left: 2px solid #8b6914;
+    background: #ede0b8;
+  }
+</style>
+
+<div id="app">
+  <div class="grimoire-header">
+    <div class="grimoire-title"><span class="ornament">⚔</span> Le Grimoire du Donjon <span class="ornament">⚔</span></div>
+    <div class="grimoire-subtitle">Générateur de Donjons & Aventures</div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('donjon')"><i class="ti ti-building-castle" aria-hidden="true"></i>Donjon</div>
+    <div class="tab" onclick="switchTab('rencontres')"><i class="ti ti-sword" aria-hidden="true"></i>Rencontres</div>
+    <div class="tab" onclick="switchTab('tresors')"><i class="ti ti-coin" aria-hidden="true"></i>Trésors</div>
+    <div class="tab" onclick="switchTab('quetes')"><i class="ti ti-scroll" aria-hidden="true"></i>Quêtes</div>
+    <div class="tab" onclick="switchTab('export')"><i class="ti ti-file-export" aria-hidden="true"></i>Exporter</div>
+  </div>
+
+  <!-- DONJON -->
+  <div class="panel active" id="panel-donjon">
+    <h2 class="sr-only">Générateur de donjon</h2>
+    <div class="section-title">⚙ Paramètres du Donjon</div>
+    <div class="controls-row">
+      <div class="control-group">
+        <label>Nombre de salles</label>
+        <select id="nb-salles">
+          <option value="3">3 — Rapide</option>
+          <option value="5" selected>5 — Standard</option>
+          <option value="8">8 — Grand</option>
+          <option value="12">12 — Épique</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>Thème</label>
+        <select id="theme-donjon">
+          <option value="crypte">Crypte maudite</option>
+          <option value="mine">Mine abandonnée</option>
+          <option value="forteresse">Forteresse ennemie</option>
+          <option value="temple">Temple profané</option>
+          <option value="caverne">Caverne naturelle</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>Difficulté</label>
+        <select id="diff-donjon">
+          <option value="faible">Faible</option>
+          <option value="moyen" selected>Moyen</option>
+          <option value="elite">Élite</option>
+          <option value="boss">Boss Final</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:6px;align-self:flex-end">
+        <button class="btn" onclick="genererDonjon()"><i class="ti ti-dice" aria-hidden="true"></i> Générer</button>
+      </div>
+    </div>
+    <div class="tip">💡 Chaque résultat en <strong>jaune</strong> dans les tables indique le résultat tiré au sort.</div>
+    <div class="two-col">
+      <div>
+        <div class="table-container">
+          <div class="table-header">Table I — Type de Salle (d12)</div>
+          <table id="table-salle">
+            <tr><th>D12</th><th>Type</th><th>Détail</th></tr>
+          </table>
+        </div>
+        <div class="table-container">
+          <div class="table-header">Table II — Atmosphère (d8)</div>
+          <table id="table-atmo">
+            <tr><th>D8</th><th>Ambiance</th></tr>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="result-box">
+          <h3><i class="ti ti-map" aria-hidden="true"></i> Salles générées</h3>
+          <div class="result-room" id="result-donjon">
+            <div style="color:#6b5020;font-size:12px;font-style:italic;text-align:center;padding:20px 0;">Configurez et lancez la génération...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RENCONTRES -->
+  <div class="panel" id="panel-rencontres">
+    <h2 class="sr-only">Générateur de rencontres</h2>
+    <div class="section-title">⚙ Paramètres des Rencontres</div>
+    <div class="controls-row">
+      <div class="control-group">
+        <label>Environnement</label>
+        <select id="env-rencontre">
+          <option value="souterrain">Souterrain</option>
+          <option value="foret">Forêt</option>
+          <option value="ruines">Ruines</option>
+          <option value="montagne">Montagne</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>Difficulté</label>
+        <select id="diff-rencontre">
+          <option value="faible">Faible</option>
+          <option value="moyen" selected>Moyen</option>
+          <option value="elite">Élite</option>
+          <option value="boss">Boss</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>Nombre de joueurs</label>
+        <select id="nb-joueurs">
+          <option value="1">1 — Solo</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4" selected>4</option>
+          <option value="5">5+</option>
+        </select>
+      </div>
+      <div style="align-self:flex-end">
+        <button class="btn" onclick="genererRencontre()"><i class="ti ti-dice" aria-hidden="true"></i> Générer</button>
+      </div>
+    </div>
+    <div class="two-col">
+      <div>
+        <div class="table-container">
+          <div class="table-header">Table III — Ennemis (d20)</div>
+          <table id="table-ennemis">
+            <tr><th>D20</th><th>Ennemi</th><th>Diff.</th></tr>
+          </table>
+        </div>
+        <div class="table-container">
+          <div class="table-header">Table IV — Comportement (d6)</div>
+          <table id="table-comportement">
+            <tr><th>D6</th><th>Comportement</th></tr>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="result-box">
+          <h3><i class="ti ti-sword" aria-hidden="true"></i> Rencontre générée</h3>
+          <div id="result-rencontre" style="color:#6b5020;font-size:12px;font-style:italic;text-align:center;padding:20px 0;">Configurez et lancez la génération...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRESORS -->
+  <div class="panel" id="panel-tresors">
+    <h2 class="sr-only">Générateur de trésors</h2>
+    <div class="section-title">⚙ Paramètres des Trésors</div>
+    <div class="controls-row">
+      <div class="control-group">
+        <label>Source du trésor</label>
+        <select id="source-tresor">
+          <option value="monstre">Dépouille de monstre</option>
+          <option value="cache">Cachette secrète</option>
+          <option value="coffre">Coffre verrouillé</option>
+          <option value="autel">Autel / Reliquaire</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>Niveau de richesse</label>
+        <select id="richesse">
+          <option value="pauvre">Pauvre</option>
+          <option value="modeste" selected>Modeste</option>
+          <option value="riche">Riche</option>
+          <option value="legendaire">Légendaire</option>
+        </select>
+      </div>
+      <div style="align-self:flex-end">
+        <button class="btn" onclick="genererTresor()"><i class="ti ti-dice" aria-hidden="true"></i> Générer</button>
+      </div>
+    </div>
+    <div class="two-col">
+      <div>
+        <div class="table-container">
+          <div class="table-header">Table V — Monnaie & Gemmes (d10)</div>
+          <table id="table-monnaie">
+            <tr><th>D10</th><th>Type</th><th>Quantité</th></tr>
+          </table>
+        </div>
+        <div class="table-container">
+          <div class="table-header">Table VI — Objets Magiques (d12)</div>
+          <table id="table-magie">
+            <tr><th>D12</th><th>Objet</th><th>Rareté</th></tr>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="result-box">
+          <h3><i class="ti ti-coin" aria-hidden="true"></i> Trésor découvert</h3>
+          <div id="result-tresor" style="color:#6b5020;font-size:12px;font-style:italic;text-align:center;padding:20px 0;">Configurez et lancez la génération...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUETES -->
+  <div class="panel" id="panel-quetes">
+    <h2 class="sr-only">Générateur de quêtes</h2>
+    <div class="section-title">⚙ Paramètres de la Quête</div>
+    <div class="controls-row">
+      <div class="control-group">
+        <label>Type de quête</label>
+        <select id="type-quete">
+          <option value="elimination">Élimination</option>
+          <option value="recuperation">Récupération</option>
+          <option value="exploration">Exploration</option>
+          <option value="escorte">Escorte</option>
+          <option value="mystere">Mystère</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>Commanditaire</label>
+        <select id="commanditaire">
+          <option value="guilde">Guilde d'aventuriers</option>
+          <option value="noble">Noble local</option>
+          <option value="temple">Ordre religieux</option>
+          <option value="marchand">Riche marchand</option>
+          <option value="paysan">Village en détresse</option>
+        </select>
+      </div>
+      <div style="align-self:flex-end">
+        <button class="btn" onclick="genererQuete()"><i class="ti ti-dice" aria-hidden="true"></i> Générer</button>
+      </div>
+    </div>
+    <div class="two-col">
+      <div>
+        <div class="table-container">
+          <div class="table-header">Table VII — Objectif Principal (d10)</div>
+          <table id="table-objectif">
+            <tr><th>D10</th><th>Objectif</th></tr>
+          </table>
+        </div>
+        <div class="table-container">
+          <div class="table-header">Table VIII — Twist Narratif (d8)</div>
+          <table id="table-twist">
+            <tr><th>D8</th><th>Retournement</th></tr>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="result-box">
+          <h3><i class="ti ti-scroll" aria-hidden="true"></i> Quête générée</h3>
+          <div id="result-quete" style="color:#6b5020;font-size:12px;font-style:italic;text-align:center;padding:20px 0;">Configurez et lancez la génération...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXPORT -->
+  <div class="panel" id="panel-export">
+    <h2 class="sr-only">Exporter l'aventure</h2>
+    <div class="section-title">📜 Résumé de l'Aventure</div>
+    <div class="tip">Générez du contenu dans chaque onglet, puis exportez votre aventure complète.</div>
+    <div id="export-preview" class="export-area">Aucun contenu généré pour l'instant.\n\nUtilisez les onglets Donjon, Rencontres, Trésors et Quêtes\npuis revenez ici pour exporter votre aventure.</div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-gold" onclick="exporterTexte()"><i class="ti ti-download" aria-hidden="true"></i> Télécharger (.txt)</button>
+      <button class="btn btn-sm" onclick="copierTexte()"><i class="ti ti-copy" aria-hidden="true"></i> Copier</button>
+      <button class="btn btn-sm" onclick="rafraichirExport()"><i class="ti ti-refresh" aria-hidden="true"></i> Actualiser</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = {
+  salles: [
+    {d:1, type:"Entrée / Vestibule", detail:"Escalier descendant, herse relevée"},
+    {d:2, type:"Couloir principal", detail:"Long passage, murs suintants"},
+    {d:3, type:"Salle de garde", detail:"Armes rouillées, vieux feu de camp"},
+    {d:4, type:"Crypte", detail:"Sarcophages alignés, inscriptions"},
+    {d:5, type:"Salle au trésor", detail:"Coffres, verrous, pièges possibles"},
+    {d:6, type:"Arène / Salle de combat", detail:"Espace dégagé, galerie supérieure"},
+    {d:7, type:"Laboratoire / Sanctuaire", detail:"Alambics, livres, runes au sol"},
+    {d:8, type:"Réservoir souterrain", detail:"Eau noire, bateaux en ruine"},
+    {d:9, type:"Cave / Entrepôt", detail:"Tonneaux, caisses empilées"},
+    {d:10, type:"Chambre des supplices", detail:"Appareils de torture, chaînes"},
+    {d:11, type:"Bibliothèque maudite", detail:"Étagères poussiéreuses, parchemins"},
+    {d:12, type:"Salle du Trône", detail:"Dais surélevé, tapisseries déchirées"},
+  ],
+  atmospheres: [
+    {d:1, ambiance:"Silence de mort — pas un bruit"},
+    {d:2, ambiance:"Gouttelettes d'eau, écho lointain"},
+    {d:3, ambiance:"Odeur de soufre et de pourriture"},
+    {d:4, ambiance:"Vent froid sans source apparente"},
+    {d:5, ambiance:"Lumière verte fantomatique"},
+    {d:6, ambiance:"Grognements étouffés au loin"},
+    {d:7, ambiance:"Traces de lutte récente"},
+    {d:8, ambiance:"Champignons luminescents"},
+  ],
+  ennemis: {
+    souterrain: [
+      {d:1,nom:"Gobelin éclaireur",diff:"faible"},{d:2,nom:"Squelette animé",diff:"faible"},
+      {d:3,nom:"Chauve-souris géante",diff:"faible"},{d:4,nom:"Araignée venimeuse",diff:"faible"},
+      {d:5,nom:"Rat géant",diff:"faible"},{d:6,nom:"Guerrier gobelin",diff:"moyen"},
+      {d:7,nom:"Zombie guerrier",diff:"moyen"},{d:8,nom:"Gnoll pillard",diff:"moyen"},
+      {d:9,nom:"Troglodyte des cavernes",diff:"moyen"},{d:10,nom:"Goule affamée",diff:"moyen"},
+      {d:11,nom:"Kobold ingénieur",diff:"moyen"},{d:12,nom:"Hobgobelin capitaine",diff:"elite"},
+      {d:13,nom:"Ogre souterrain",diff:"elite"},{d:14,nom:"Nécromancien mineur",diff:"elite"},
+      {d:15,nom:"Golem d'argile",diff:"elite"},{d:16,nom:"Vampire affaibli",diff:"elite"},
+      {d:17,nom:"Basilic aveugle",diff:"elite"},{d:18,nom:"Liche assistante",diff:"boss"},
+      {d:19,nom:"Dragon ombre juvénile",diff:"boss"},{d:20,nom:"Seigneur démon lié",diff:"boss"},
+    ],
+    foret:[
+      {d:1,nom:"Loup",diff:"faible"},{d:2,nom:"Sanglier sauvage",diff:"faible"},
+      {d:3,nom:"Esprit follet",diff:"faible"},{d:4,nom:"Pixie malicieuse",diff:"faible"},
+      {d:5,nom:"Gobelin des bois",diff:"faible"},{d:6,nom:"Ours brun",diff:"moyen"},
+      {d:7,nom:"Satyre corrompu",diff:"moyen"},{d:8,nom:"Bandit de grand chemin",diff:"moyen"},
+      {d:9,nom:"Plante carnivore",diff:"moyen"},{d:10,nom:"Loup-garou",diff:"moyen"},
+      {d:11,nom:"Dryade enragée",diff:"moyen"},{d:12,nom:"Géant des bois",diff:"elite"},
+      {d:13,nom:"Chimère",diff:"elite"},{d:14,nom:"Sorcière de la forêt",diff:"elite"},
+      {d:15,nom:"Hydre",diff:"elite"},{d:16,nom:"Gorgone",diff:"elite"},
+      {d:17,nom:"Roc immature",diff:"elite"},{d:18,nom:"Licorne corrompue",diff:"boss"},
+      {d:19,nom:"Dragon vert juvénile",diff:"boss"},{d:20,nom:"Esprit de la forêt maudit",diff:"boss"},
+    ],
+    ruines:[
+      {d:1,nom:"Rat de ruines",diff:"faible"},{d:2,nom:"Squelette errant",diff:"faible"},
+      {d:3,nom:"Fantôme faible",diff:"faible"},{d:4,nom:"Lézard géant",diff:"faible"},
+      {d:5,nom:"Vagabond fou",diff:"faible"},{d:6,nom:"Zombie guerrier",diff:"moyen"},
+      {d:7,nom:"Cultiste fanatique",diff:"moyen"},{d:8,nom:"Banshee mineure",diff:"moyen"},
+      {d:9,nom:"Goule rapide",diff:"moyen"},{d:10,nom:"Spectre enchaîné",diff:"moyen"},
+      {d:11,nom:"Mimic déguisé",diff:"moyen"},{d:12,nom:"Golem de pierre",diff:"elite"},
+      {d:13,nom:"Revenant vengeur",diff:"elite"},{d:14,nom:"Prêtre maudit",diff:"elite"},
+      {d:15,nom:"Ombre dévorante",diff:"elite"},{d:16,nom:"Chevalier mort-vivant",diff:"elite"},
+      {d:17,nom:"Mage des ruines",diff:"elite"},{d:18,nom:"Phylactère animé",diff:"boss"},
+      {d:19,nom:"Dragon osseux",diff:"boss"},{d:20,nom:"Dieu oublié fragmenté",diff:"boss"},
+    ],
+    montagne:[
+      {d:1,nom:"Aigle géant",diff:"faible"},{d:2,nom:"Chèvre mutante",diff:"faible"},
+      {d:3,nom:"Kobold des pics",diff:"faible"},{d:4,nom:"Humanoïde des glaces",diff:"faible"},
+      {d:5,nom:"Chauve-souris de caverne",diff:"faible"},{d:6,nom:"Griffon juvénile",diff:"moyen"},
+      {d:7,nom:"Troll des pierres",diff:"moyen"},{d:8,nom:"Géant des collines",diff:"moyen"},
+      {d:9,nom:"Cerbère montagnard",diff:"moyen"},{d:10,nom:"Yéti",diff:"moyen"},
+      {d:11,nom:"Manticore",diff:"elite"},{d:12,nom:"Géant du givre",diff:"elite"},
+      {d:13,nom:"Wyrm des glaces",diff:"elite"},{d:14,nom:"Cyclope guerrier",diff:"elite"},
+      {d:15,nom:"Oiseau tonnerre",diff:"elite"},{d:16,nom:"Roc adulte",diff:"boss"},
+      {d:17,nom:"Dragon blanc juvénile",diff:"boss"},{d:18,nom:"Titan de pierre",diff:"boss"},
+      {d:19,nom:"Géant des tempêtes",diff:"boss"},{d:20,nom:"Dieu de la montagne",diff:"boss"},
+    ],
+  },
+  comportements:[
+    {d:1,c:"Agressif — attaque immédiatement"},
+    {d:2,c:"Territorial — grogne, mais attend"},
+    {d:3,c:"En embuscade — attaque par surprise"},
+    {d:4,c:"Apeuré — fuit au combat perdu"},
+    {d:5,c:"Fanatique — combat à mort"},
+    {d:6,c:"Stratège — repositionne ses troupes"},
+  ],
+  monnaies:[
+    {d:1,type:"Pièces de cuivre",qte:"2d6 × 10"},
+    {d:2,type:"Pièces d'argent",qte:"2d6 × 5"},
+    {d:3,type:"Mix cuivre/argent",qte:"1d6 × 10 de chaque"},
+    {d:4,type:"Pièces d'or",qte:"1d6 × 5"},
+    {d:5,type:"Pièces d'or",qte:"2d6 × 10"},
+    {d:6,type:"Gemmes grossières",qte:"1d4 gemmes (10–50 po chacune)"},
+    {d:7,type:"Bijou simple",qte:"Valeur 1d6 × 25 po"},
+    {d:8,type:"Gemmes taillées",qte:"1d4 gemmes (50–200 po)"},
+    {d:9,type:"Bijou précieux",qte:"Valeur 1d6 × 100 po"},
+    {d:10,type:"Artefact ancien",qte:"Valeur estimée 500+ po"},
+  ],
+  magie:[
+    {d:1,obj:"Potion de soin",rarete:"Commune"},
+    {d:2,obj:"Parchemin de sort mineur",rarete:"Commune"},
+    {d:3,obj:"Flèches +1 (1d6)",rarete:"Commune"},
+    {d:4,obj:"Torche de révélation",rarete:"Commune"},
+    {d:5,obj:"Anneau de protection mineure",rarete:"Peu commune"},
+    {d:6,obj:"Arme +1",rarete:"Peu commune"},
+    {d:7,obj:"Armure +1",rarete:"Peu commune"},
+    {d:8,obj:"Baguette de détection de magie",rarete:"Peu commune"},
+    {d:9,obj:"Bottes de rapidité",rarete:"Rare"},
+    {d:10,obj:"Épée vorpale mineure",rarete:"Rare"},
+    {d:11,obj:"Amulette de guérison",rarete:"Très rare"},
+    {d:12,obj:"Objet maudit — effet aléatoire",rarete:"Légendaire"},
+  ],
+  objectifs:[
+    {d:1,obj:"Tuer le chef des monstres"},
+    {d:2,obj:"Récupérer un artefact volé"},
+    {d:3,obj:"Explorer et cartographier le donjon"},
+    {d:4,obj:"Escorter un prisonnier jusqu'à la sortie"},
+    {d:5,obj:"Détruire un rituel en cours"},
+    {d:6,obj:"Trouver et neutraliser un traître"},
+    {d:7,obj:"Voler les plans de l'ennemi"},
+    {d:8,obj:"Libérer des villageois captifs"},
+    {d:9,obj:"Fermer un portail dimensionnel"},
+    {d:10,obj:"Récupérer le corps d'un héros tombé"},
+  ],
+  twists:[
+    {d:1,twist:"L'ennemi principal était autrefois un allié"},
+    {d:2,twist:"Le commanditaire est corrompu / traître"},
+    {d:3,twist:"Un innocent est mêlé aux ennemis"},
+    {d:4,twist:"La vraie menace est ailleurs dans le donjon"},
+    {d:5,twist:"Un ennemi propose une alliance surprenante"},
+    {d:6,twist:"La récompense annoncée n'existe pas"},
+    {d:7,twist:"L'artefact recherché est vivant"},
+    {d:8,twist:"Un autre groupe de héros rivalise pour l'objectif"},
+  ],
+};
+
+const state = { donjon: null, rencontre: null, tresor: null, quete: null };
+
+function roll(max){ return Math.floor(Math.random()*max)+1; }
+
+function populateTables(){
+  const ts = document.getElementById('table-salle');
+  DATA.salles.forEach(r=>{ts.innerHTML+=`<tr><td>${r.d}</td><td>${r.type}</td><td style="font-size:11px;color:#6b5020">${r.detail}</td></tr>`;});
+  const ta = document.getElementById('table-atmo');
+  DATA.atmospheres.forEach(r=>{ta.innerHTML+=`<tr><td>${r.d}</td><td>${r.ambiance}</td></tr>`;});
+  const tb = document.getElementById('table-comportement');
+  DATA.comportements.forEach(r=>{tb.innerHTML+=`<tr><td>${r.d}</td><td>${r.c}</td></tr>`;});
+  const te = document.getElementById('table-ennemis');
+  DATA.ennemis.souterrain.forEach(r=>{te.innerHTML+=`<tr><td>${r.d}</td><td>${r.nom}</td><td><span class="diff-badge diff-${r.diff}">${r.diff}</span></td></tr>`;});
+  const tm = document.getElementById('table-monnaie');
+  DATA.monnaies.forEach(r=>{tm.innerHTML+=`<tr><td>${r.d}</td><td>${r.type}</td><td style="font-size:11px">${r.qte}</td></tr>`;});
+  const tma = document.getElementById('table-magie');
+  DATA.magie.forEach(r=>{tma.innerHTML+=`<tr><td>${r.d}</td><td>${r.obj}</td><td style="font-size:11px">${r.rarete}</td></tr>`;});
+  const to = document.getElementById('table-objectif');
+  DATA.objectifs.forEach(r=>{to.innerHTML+=`<tr><td>${r.d}</td><td>${r.obj}</td></tr>`;});
+  const tt = document.getElementById('table-twist');
+  DATA.twists.forEach(r=>{tt.innerHTML+=`<tr><td>${r.d}</td><td>${r.twist}</td></tr>`;});
+}
+
+function highlightRow(tableId, rowIndex){
+  const rows = document.querySelectorAll(`#${tableId} tr`);
+  rows.forEach(r=>r.classList.remove('highlighted'));
+  if(rows[rowIndex]) rows[rowIndex].classList.add('highlighted');
+}
+
+function diffLabel(d){
+  return `<span class="diff-badge diff-${d}">${d}</span>`;
+}
+
+function genererDonjon(){
+  const nb = parseInt(document.getElementById('nb-salles').value);
+  const theme = document.getElementById('theme-donjon').value;
+  const themeLabels = {crypte:'Crypte maudite',mine:'Mine abandonnée',forteresse:'Forteresse ennemie',temple:'Temple profané',caverne:'Caverne naturelle'};
+  const salles = [];
+  for(let i=0;i<nb;i++){
+    const ds = roll(12); const da = roll(8);
+    const salle = DATA.salles[ds-1];
+    const atmo = DATA.atmospheres[da-1];
+    salles.push({num:i+1, salle, atmo, ds, da});
+  }
+  const lastSalle = salles[salles.length-1];
+  highlightRow('table-salle', lastSalle.ds);
+  highlightRow('table-atmo', lastSalle.da);
+  const exits = ['N','S','E','O'];
+  let html = '';
+  salles.forEach(s=>{
+    const nbExits = s.num===nb?1:roll(3);
+    const roomExits = exits.slice(0,nbExits).join(', ');
+    const isFinal = s.num===nb;
+    html+=`<div class="room-card" style="${isFinal?'border-left-color:#8b6914':''}">
+      <div class="room-num">Salle ${s.num}${isFinal?' — Boss / Final':''}</div>
+      <div class="room-name">${s.salle.type}</div>
+      <div class="room-desc">${s.atmo.ambiance}. ${s.salle.detail}.</div>
+      <div class="room-exits">Sorties : ${roomExits}</div>
+    </div>`;
+  });
+  document.getElementById('result-donjon').innerHTML = html;
+  state.donjon = {theme:themeLabels[theme], nb, salles};
+}
+
+function genererRencontre(){
+  const env = document.getElementById('env-rencontre').value;
+  const diff = document.getElementById('diff-rencontre').value;
+  const nb = parseInt(document.getElementById('nb-joueurs').value);
+  const de = roll(20);
+  const ennemis = DATA.ennemis[env];
+  let ennemi = ennemis[de-1];
+  const dc = roll(6);
+  const comp = DATA.comportements[dc-1];
+  const nbEnnemis = diff==='faible'?roll(3)+1:diff==='moyen'?roll(4)+1:diff==='elite'?roll(2)+1:1;
+  const nbSoutien = diff==='boss'?roll(4):0;
+  const te = document.getElementById('table-ennemis');
+  const rows = te.querySelectorAll('tr');
+  rows.forEach(r=>r.classList.remove('highlighted'));
+  if(rows[de]) rows[de].classList.add('highlighted');
+  highlightRow('table-comportement', dc);
+  let html=`
+    <div style="margin-bottom:8px">
+      <div style="color:#d4a843;font-size:12px;font-weight:700;margin-bottom:6px">Ennemi principal</div>
+      <span class="monster-tag">${ennemi.nom}</span>
+      ${diffLabel(ennemi.diff)}
+      <div style="color:#f5ead0;font-size:11px;margin-top:4px">Nombre : <strong>${nbEnnemis}</strong></div>
+    </div>`;
+  if(nbSoutien>0){
+    const soutien = ennemis[roll(8)-1];
+    html+=`<div style="margin-bottom:8px">
+      <div style="color:#d4a843;font-size:12px;font-weight:700;margin-bottom:4px">Renforts</div>
+      <span class="monster-tag">${soutien.nom}</span>
+      <div style="color:#f5ead0;font-size:11px;margin-top:4px">Nombre : ${nbSoutien}</div>
+    </div>`;
+  }
+  html+=`<div style="border-top:1px solid #8b6914;padding-top:8px;margin-top:4px">
+    <div style="color:#d4a843;font-size:12px;font-weight:700;margin-bottom:4px">Comportement</div>
+    <div style="color:#f5ead0;font-size:12px">${comp.c}</div>
+    <div style="color:#8b6914;font-size:11px;margin-top:6px">${nb} joueur(s) — Environnement : ${env}</div>
+  </div>`;
+  document.getElementById('result-rencontre').innerHTML = html;
+  state.rencontre = {ennemi:ennemi.nom, nb:nbEnnemis, comp:comp.c, env};
+}
+
+function genererTresor(){
+  const richesse = document.getElementById('richesse').value;
+  const source = document.getElementById('source-tresor').value;
+  const dm = roll(10);
+  const dma = roll(12);
+  const monnaie = DATA.monnaies[dm-1];
+  const objet = DATA.magie[dma-1];
+  const hasMagie = richesse==='riche'||richesse==='legendaire'||roll(6)>=5;
+  highlightRow('table-monnaie', dm);
+  highlightRow('table-magie', dma);
+  const srcLabels={monstre:'Dépouille de monstre',cache:'Cachette secrète',coffre:'Coffre verrouillé',autel:'Autel / Reliquaire'};
+  let html=`<div style="margin-bottom:8px">
+    <div style="color:#d4a843;font-size:12px;font-weight:700;margin-bottom:6px">Source : ${srcLabels[source]}</div>
+    <div style="color:#d4a843;font-size:11px;margin-bottom:4px">Monnaie & Gemmes</div>
+    <span class="treasure-tag">${monnaie.type}</span>
+    <div style="color:#f5ead0;font-size:11px;margin-top:4px">${monnaie.qte}</div>
+  </div>`;
+  if(hasMagie){
+    const rareteColor = {Commune:'#c0dd97',Uncommune:'#fac775','Peu commune':'#fac775',Rare:'#f09595','Très rare':'#d4a843',Légendaire:'#d4a843'};
+    html+=`<div style="border-top:1px solid #8b6914;padding-top:8px;margin-top:4px">
+      <div style="color:#d4a843;font-size:11px;margin-bottom:4px">Objet Magique</div>
+      <span class="treasure-tag">${objet.obj}</span>
+      <span style="font-size:10px;color:${rareteColor[objet.rarete]||'#d4a843'};margin-left:6px">${objet.rarete}</span>
+    </div>`;
+  }
+  const hasPiege = source==='coffre'&&roll(6)>=4;
+  if(hasPiege){
+    const pieges=['Fléchette empoisonnée','Gaz soporifique','Lame dissimulée','Explosion de feu','Chute de plafond'];
+    html+=`<div style="border-top:1px solid #8b1a1a;padding-top:8px;margin-top:8px">
+      <div style="color:#f09595;font-size:11px;font-weight:700">⚠ Piège détecté !</div>
+      <div style="color:#f5ead0;font-size:11px;margin-top:2px">${pieges[roll(5)-1]}</div>
+    </div>`;
+  }
+  document.getElementById('result-tresor').innerHTML = html;
+  state.tresor = {monnaie:monnaie.type, qte:monnaie.qte, objet:hasMagie?objet.obj:null};
+}
+
+function genererQuete(){
+  const type = document.getElementById('type-quete').value;
+  const cmdtaire = document.getElementById('commanditaire').value;
+  const do_ = roll(10);
+  const dt = roll(8);
+  const obj = DATA.objectifs[do_-1];
+  const twist = DATA.twists[dt-1];
+  highlightRow('table-objectif', do_);
+  highlightRow('table-twist', dt);
+  const cmdLabels={guilde:'Guilde d\'aventuriers',noble:'Noble local',temple:'Ordre religieux',marchand:'Riche marchand',paysan:'Village en détresse'};
+  const recompenses=['50 po + faveur','100 po','200 po + objet commun','Objet magique peu commun','300 po + accès à une ressource','Titre honorifique local'];
+  const recompense = recompenses[roll(6)-1];
+  let html=`
+    <div class="quest-block"><div class="qlabel">Commanditaire</div><div class="qval">${cmdLabels[cmdtaire]}</div></div>
+    <div class="quest-block"><div class="qlabel">Objectif principal</div><div class="qval">${obj.obj}</div></div>
+    <div class="quest-block" style="border-left:3px solid #8b1a1a;"><div class="qlabel" style="color:#8b1a1a">⚠ Retournement</div><div class="qval">${twist.twist}</div></div>
+    <div class="quest-block"><div class="qlabel">Récompense</div><div class="qval">${recompense}</div></div>`;
+  document.getElementById('result-quete').innerHTML = html;
+  state.quete = {obj:obj.obj, twist:twist.twist, cmd:cmdLabels[cmdtaire], recompense};
+}
+
+function rafraichirExport(){
+  let txt = '════════════════════════════════════\n       LE GRIMOIRE DU DONJON\n       Aventure Générée\n════════════════════════════════════\n\n';
+  if(state.donjon){
+    txt+=`▪ DONJON : ${state.donjon.theme}\n`;
+    txt+=`  ${state.donjon.nb} salles générées\n`;
+    state.donjon.salles.forEach(s=>{
+      txt+=`  Salle ${s.num} : ${s.salle.type} — ${s.atmo.ambiance}\n`;
+    });
+    txt+='\n';
+  } else { txt+='▪ DONJON : non généré\n\n'; }
+  if(state.rencontre){
+    txt+=`▪ RENCONTRE\n  Ennemi : ${state.rencontre.ennemi} (×${state.rencontre.nb})\n  Comportement : ${state.rencontre.comp}\n\n`;
+  } else { txt+='▪ RENCONTRE : non générée\n\n'; }
+  if(state.tresor){
+    txt+=`▪ TRÉSOR\n  ${state.tresor.monnaie} — ${state.tresor.qte}\n`;
+    if(state.tresor.objet) txt+=`  Objet magique : ${state.tresor.objet}\n`;
+    txt+='\n';
+  } else { txt+='▪ TRÉSOR : non généré\n\n'; }
+  if(state.quete){
+    txt+=`▪ QUÊTE\n  Commanditaire : ${state.quete.cmd}\n  Objectif : ${state.quete.obj}\n  Twist : ${state.quete.twist}\n  Récompense : ${state.quete.recompense}\n\n`;
+  } else { txt+='▪ QUÊTE : non générée\n\n'; }
+  txt+='════════════════════════════════════';
+  document.getElementById('export-preview').textContent = txt;
+}
+
+function exporterTexte(){
+  rafraichirExport();
+  const txt = document.getElementById('export-preview').textContent;
+  const blob = new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='aventure_grimoire.txt'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function copierTexte(){
+  rafraichirExport();
+  const txt = document.getElementById('export-preview').textContent;
+  navigator.clipboard.writeText(txt).catch(()=>{});
+}
+
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    const tabs=['donjon','rencontres','tresors','quetes','export'];
+    t.classList.toggle('active', tabs[i]===name);
+  });
+  document.querySelectorAll('.panel').forEach(p=>{
+    p.classList.toggle('active', p.id===`panel-${name}`);
+  });
+  if(name==='export') rafraichirExport();
+}
+
+populateTables();
+</script>

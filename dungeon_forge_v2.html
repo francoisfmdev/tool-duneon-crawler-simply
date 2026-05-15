@@ -1,0 +1,477 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+#app{font-family:var(--font-sans);background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden}
+.top-bar{background:var(--color-background-secondary);border-bottom:0.5px solid var(--color-border-tertiary);padding:10px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.top-bar h1{font-size:14px;font-weight:500;color:var(--color-text-primary);flex:1;min-width:120px}
+.tabs{display:flex;border-bottom:0.5px solid var(--color-border-tertiary)}
+.tab{padding:8px 16px;font-size:12px;cursor:pointer;color:var(--color-text-secondary);border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+.tab.on{color:var(--color-text-primary);border-bottom-color:var(--color-text-primary);font-weight:500}
+.tab:hover:not(.on){background:var(--color-background-secondary)}
+.pane{display:none;padding:14px}
+.pane.on{display:block}
+.cfg{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:14px}
+.cf{display:flex;flex-direction:column;gap:4px}
+.cf label{font-size:11px;color:var(--color-text-secondary);letter-spacing:.3px}
+.cf input[type=range]{width:100%}
+.cf .val{font-size:12px;font-weight:500;color:var(--color-text-primary)}
+.cf select{font-size:12px;padding:4px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+button{font-size:12px;padding:6px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;transition:background .15s}
+button:hover{background:var(--color-background-secondary)}
+button.primary{background:#3C3489;color:#fff;border-color:#3C3489}
+button.primary:hover{background:#534AB7}
+#canvas-wrap{overflow:auto;background:#111;border-radius:var(--border-radius-md);margin-bottom:14px;line-height:0}
+canvas{display:block}
+.info-bar{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px;font-size:12px;color:var(--color-text-secondary);min-height:38px;line-height:1.6;border:0.5px solid var(--color-border-tertiary)}
+.info-bar strong{color:var(--color-text-primary)}
+.leg{display:flex;gap:12px;flex-wrap:wrap;padding:10px 0 2px}
+.li{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--color-text-secondary)}
+.ld{width:11px;height:11px;border-radius:2px;flex-shrink:0}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.card{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:12px 14px}
+.card h3{font-size:12px;font-weight:500;color:var(--color-text-primary);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.card p{font-size:12px;color:var(--color-text-secondary);line-height:1.6}
+.badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500;margin-bottom:6px}
+.b-red{background:#FCEBEB;color:#A32D2D}
+.b-amber{background:#FAEEDA;color:#633806}
+.b-blue{background:#E6F1FB;color:#0C447C}
+.b-green{background:#EAF3DE;color:#27500A}
+.b-purple{background:#EEEDFE;color:#3C3489}
+.b-gray{background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary)}
+.stat-row{display:flex;justify-content:space-between;font-size:11px;padding:2px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.stat-row:last-child{border-bottom:none}
+.stat-row span:first-child{color:var(--color-text-secondary)}
+.stat-row span:last-child{font-weight:500;color:var(--color-text-primary)}
+.evt-list{list-style:none;display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.evt-list li{font-size:12px;color:var(--color-text-secondary);padding:6px 10px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);line-height:1.5}
+.evt-list li strong{color:var(--color-text-primary)}
+</style>
+
+<h2 class="sr-only">Dungeon Forge — générateur de battle map configurable avec monstres et événements</h2>
+<div id="app">
+  <div class="top-bar">
+    <h1><i class="ti ti-building-castle" aria-hidden="true"></i> Dungeon Forge</h1>
+    <button class="primary" onclick="generate()"><i class="ti ti-dice" aria-hidden="true"></i> Générer</button>
+    <button onclick="exportPNG()"><i class="ti ti-download" aria-hidden="true"></i> PNG</button>
+  </div>
+
+  <div class="tabs">
+    <div class="tab on" onclick="switchTab('map')"><i class="ti ti-map" aria-hidden="true"></i> Carte</div>
+    <div class="tab" onclick="switchTab('monsters')"><i class="ti ti-sword" aria-hidden="true"></i> Monstres</div>
+    <div class="tab" onclick="switchTab('events')"><i class="ti ti-bolt" aria-hidden="true"></i> Événements</div>
+    <div class="tab" onclick="switchTab('config')"><i class="ti ti-settings" aria-hidden="true"></i> Configuration</div>
+  </div>
+
+  <div class="pane on" id="pane-map">
+    <div id="canvas-wrap"><canvas id="map"></canvas></div>
+    <div class="leg">
+      <div class="li"><div class="ld" style="background:#4a3f2f;border:1px solid #7a6040"></div>Sol</div>
+      <div class="li"><div class="ld" style="background:#111"></div>Mur</div>
+      <div class="li"><div class="ld" style="background:#7a3a10;border:1px solid #c07030"></div>Porte</div>
+      <div class="li"><div class="ld" style="background:#8b1a1a"></div>Monstre</div>
+      <div class="li"><div class="ld" style="background:#8b1a8b"></div>Boss</div>
+      <div class="li"><div class="ld" style="background:#b8960c"></div>Trésor</div>
+      <div class="li"><div class="ld" style="background:#1a4a8b"></div>Eau</div>
+      <div class="li"><div class="ld" style="background:#6b1a8b"></div>Piège</div>
+      <div class="li"><div class="ld" style="background:#2a4a2a"></div>Décor</div>
+      <div class="li"><div class="ld" style="background:#404a20"></div>Événement</div>
+    </div>
+    <div class="info-bar" id="info">Cliquez sur une salle pour voir ses détails.</div>
+  </div>
+
+  <div class="pane" id="pane-monsters">
+    <div class="btns">
+      <button class="primary" onclick="rerollMonsters()"><i class="ti ti-refresh" aria-hidden="true"></i> Relancer les monstres</button>
+    </div>
+    <div class="card-grid" id="monster-cards"></div>
+  </div>
+
+  <div class="pane" id="pane-events">
+    <div class="btns">
+      <button class="primary" onclick="rerollEvents()"><i class="ti ti-refresh" aria-hidden="true"></i> Relancer les événements</button>
+    </div>
+    <div id="event-cards"></div>
+  </div>
+
+  <div class="pane" id="pane-config">
+    <div class="cfg" id="cfg-grid"></div>
+    <div class="btns">
+      <button class="primary" onclick="applyConfig()"><i class="ti ti-check" aria-hidden="true"></i> Appliquer et générer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const CFG = {
+  gridW:   {label:'Largeur grille',min:20,max:60,val:40,step:2,unit:'cases'},
+  gridH:   {label:'Hauteur grille',min:15,max:40,val:30,step:1,unit:'cases'},
+  cellSize:{label:'Taille des cases',min:12,max:28,val:18,step:2,unit:'px'},
+  nbRooms: {label:'Nombre de salles',min:3,max:16,val:7,step:1,unit:''},
+  minRW:   {label:'Largeur salle min',min:3,max:8,val:4,step:1,unit:''},
+  maxRW:   {label:'Largeur salle max',min:5,max:14,val:9,step:1,unit:''},
+  minRH:   {label:'Hauteur salle min',min:2,max:6,val:3,step:1,unit:''},
+  maxRH:   {label:'Hauteur salle max',min:4,max:10,val:6,step:1,unit:''},
+  density: {label:'Densité décors',min:0,max:10,val:5,step:1,unit:''},
+  trapRate:{label:'Taux de pièges %',min:0,max:80,val:30,step:5,unit:'%'},
+  waterRate:{label:'Taux eau/fontaine %',min:0,max:60,val:20,step:5,unit:'%'},
+  eventRate:{label:'Taux événements %',min:0,max:80,val:40,step:5,unit:'%'},
+  theme:   {label:'Thème',type:'select',options:['crypte','mine','temple','caverne','chaos'],val:'crypte'},
+  diff:    {label:'Difficulté',type:'select',options:['trivial','faible','moyen','elite','boss'],val:'moyen'},
+};
+
+const THEMES={
+  crypte: {f1:'#3d3325',f2:'#453a2b',wall:'#0e0c09',wEdge:'#5a4d38',corr:'#352e22'},
+  mine:   {f1:'#2e2a22',f2:'#353028',wall:'#100e0c',wEdge:'#4a4035',corr:'#28251e'},
+  temple: {f1:'#2e2840',f2:'#352f4a',wall:'#100e18',wEdge:'#504068',corr:'#28243a'},
+  caverne:{f1:'#2a2f22',f2:'#303828',wall:'#0c100a',wEdge:'#3a4832',corr:'#262c20'},
+  chaos:  {f1:'#301818',f2:'#381e1e',wall:'#100808',wEdge:'#582828',corr:'#281414'},
+};
+
+const MONSTERS={
+  trivial:['Rat géant','Chauve-souris','Gobelin scout','Squelette fragile','Slime'],
+  faible: ['Gobelin','Squelette','Zombie','Araignée venimeuse','Kobold'],
+  moyen:  ['Gnoll','Goule','Hobgobelin','Orque','Troglodyte','Bandit armé'],
+  elite:  ['Ogre','Vampire','Nécromancien','Golem d\'argile','Chevalier maudit','Momie'],
+  boss:   ['Liche','Dragon d\'ombre','Archivampire','Seigneur Démon','Titan osseux'],
+};
+
+const MONSTER_TRAITS=[
+  'Régénération rapide','Immunité au feu','Attaque empoisonnée','Résistance magique',
+  'Charge dévastatrice','Vision dans le noir','Cri de terreur','Aura de mort',
+  'Peau d\'acier','Bonds acrobatiques','Appel de renforts','Réflexes foudroyants',
+];
+
+const EVENTS_TABLE=[
+  {type:'Piège',name:'Plancher effondré',desc:'Le sol cède sous les pieds. Test de DEX ou chute de 2d6 dégâts.',badge:'b-red'},
+  {type:'Piège',name:'Fléchettes empoisonnées',desc:'Déclenchement au mouvement. Test de CON ou état empoisonné 1d4 tours.',badge:'b-red'},
+  {type:'Piège',name:'Runes d\'explosion',desc:'Inscriptions magiques au sol. Dégâts de feu 3d6 dans un rayon de 2 cases.',badge:'b-red'},
+  {type:'Piège',name:'Gaz soporifique',desc:'Nuage qui envahit la salle. Test de CON ou état endormi.',badge:'b-red'},
+  {type:'Renfort',name:'Patrouille surprise',desc:'1d4 gardes arrivent par le couloir nord à la fin du round 2.',badge:'b-amber'},
+  {type:'Renfort',name:'Invocation démoniaque',desc:'Un portail s\'ouvre. Un monstre d\'élite apparaît au centre de la salle.',badge:'b-amber'},
+  {type:'Renfort',name:'Tambour de guerre',desc:'Un gobelin bat le tambour hors-vue. Les ennemis ont avantage aux jets d\'attaque.',badge:'b-amber'},
+  {type:'Environnement',name:'Obscurité soudaine',desc:'Les torches s\'éteignent. Toutes les créatures ont désavantage tant que la lumière n\'est pas rétablie.',badge:'b-blue'},
+  {type:'Environnement',name:'Sol glissant',desc:'Eau ou huile répandue. Déplacement coûte 2× le mouvement normal.',badge:'b-blue'},
+  {type:'Environnement',name:'Vent magique',desc:'Rafale surnaturelle. Les projectiles ont désavantage. Les torches vacillent.',badge:'b-blue'},
+  {type:'Environnement',name:'Tremblement de terre mineur',desc:'Secousses : terrain difficile partout. Les créatures grandes doivent réussir STR ou tomber.',badge:'b-blue'},
+  {type:'Découverte',name:'Passage secret',desc:'Un pan de mur pivote, révélant un couloir caché menant à une salle non cartographiée.',badge:'b-green'},
+  {type:'Découverte',name:'Journal d\'explorateur',desc:'Notes d\'un aventurier précédent. Révèle la disposition des salles suivantes.',badge:'b-green'},
+  {type:'Découverte',name:'Fontaine magique',desc:'Boire octroie un effet aléatoire : soin 2d6, force +2 pendant 1h, ou malédiction.',badge:'b-green'},
+  {type:'Découverte',name:'Trésor caché',desc:'Une brique déplacée révèle un réduit contenant un objet magique de rareté aléatoire.',badge:'b-green'},
+  {type:'Narratif',name:'Prisonnier',desc:'Un PNJ enchaîné. Libéré, il peut donner des infos ou trahir les joueurs.',badge:'b-purple'},
+  {type:'Narratif',name:'Inscription prophétique',desc:'Runes sur le mur : révèlent l\'objectif ou avertissent d\'un danger à venir.',badge:'b-purple'},
+  {type:'Narratif',name:'Querelle de monstres',desc:'Deux factions ennemies se battent. Les joueurs peuvent profiter du chaos ou choisir un camp.',badge:'b-purple'},
+  {type:'Narratif',name:'Marchand errant',desc:'Un marchand mystérieux propose 3 objets magiques à prix exorbitant.',badge:'b-purple'},
+  {type:'Narraif',name:'Illusion trompeuse',desc:'La salle semble vide mais des entités invisibles observent et peuvent attaquer par surprise.',badge:'b-purple'},
+];
+
+const ROOM_NAMES=['Entrée','Salle de garde','Crypte','Arène','Sanctuaire','Réserve','Bibliothèque','Chambre des supplices','Salle du trône','Celliers','Vestibule','Forge maudite','Laboratoire','Salle des eaux','Ossuaire'];
+const DECORS_LIST=['Colonne','Statue brisée','Autel','Brasero','Tonneau','Étagère','Fontaine','Sarcophage','Pile de débris','Chaînes'];
+
+let grid,rooms,roomData,monsterData,eventData;
+let COLS,ROWS,CS;
+
+function r(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+
+function buildConfigUI(){
+  const g=document.getElementById('cfg-grid');
+  g.innerHTML='';
+  for(const [k,c] of Object.entries(CFG)){
+    const div=document.createElement('div');
+    div.className='cf';
+    if(c.type==='select'){
+      div.innerHTML=`<label>${c.label}</label><select id="cfg-${k}">${c.options.map(o=>`<option value="${o}"${o===c.val?' selected':''}>${o}</option>`).join('')}</select>`;
+    } else {
+      div.innerHTML=`<label>${c.label} <span class="val" id="v-${k}">${c.val}${c.unit}</span></label><input type="range" id="cfg-${k}" min="${c.min}" max="${c.max}" step="${c.step}" value="${c.val}">`;
+      div.querySelector('input').addEventListener('input',e=>{CFG[k].val=+e.target.value;document.getElementById('v-'+k).textContent=CFG[k].val+c.unit;});
+    }
+    g.appendChild(div);
+  }
+}
+
+function applyConfig(){
+  for(const [k,c] of Object.entries(CFG)){
+    const el=document.getElementById('cfg-'+k);
+    if(!el) continue;
+    CFG[k].val = c.type==='select'? el.value : +el.value;
+  }
+  generate();
+  switchTab('map');
+}
+
+function initGrid(){
+  COLS=CFG.gridW.val; ROWS=CFG.gridH.val; CS=CFG.cellSize.val;
+  grid=Array.from({length:ROWS},()=>Array(COLS).fill(0));
+}
+function carveRect(x,y,w,h){for(let r=y;r<y+h;r++)for(let c=x;c<x+w;c++)if(r>=0&&r<ROWS&&c>=0&&c<COLS)grid[r][c]=1;}
+function carveH(x1,x2,y){let a=Math.min(x1,x2),b=Math.max(x1,x2);for(let c=a;c<=b;c++)if(c>=0&&c<COLS&&y>=0&&y<ROWS)grid[y][c]=1;}
+function carveV(y1,y2,x){let a=Math.min(y1,y2),b=Math.max(y1,y2);for(let r=a;r<=b;r++)if(r>=0&&r<ROWS&&x>=0&&x<COLS)grid[r][x]=1;}
+
+function generate(){
+  initGrid(); rooms=[]; roomData=[]; monsterData=[]; eventData=[];
+  const minW=CFG.minRW.val,maxW=Math.max(CFG.maxRW.val,minW+1);
+  const minH=CFG.minRH.val,maxH=Math.max(CFG.maxRH.val,minH+1);
+  const nb=CFG.nbRooms.val;
+  const diff=CFG.diff.val;
+  let attempts=0;
+  while(rooms.length<nb&&attempts<600){
+    attempts++;
+    const rw=r(minW,maxW),rh=r(minH,maxH);
+    const rx=r(1,COLS-rw-2),ry=r(1,ROWS-rh-2);
+    let ok=true;
+    for(const rm of rooms){if(rx<rm.x+rm.w+2&&rx+rw>rm.x-2&&ry<rm.y+rm.h+2&&ry+rh>rm.y-2){ok=false;break;}}
+    if(ok){rooms.push({x:rx,y:ry,w:rw,h:rh});carveRect(rx,ry,rw,rh);}
+  }
+  for(let i=1;i<rooms.length;i++){
+    const a=rooms[i-1],b=rooms[i];
+    const ax=Math.floor(a.x+a.w/2),ay=Math.floor(a.y+a.h/2);
+    const bx=Math.floor(b.x+b.w/2),by=Math.floor(b.y+b.h/2);
+    if(Math.random()<0.5){carveH(ax,bx,ay);carveV(ay,by,bx);}
+    else{carveV(ay,by,ax);carveH(ax,bx,by);}
+  }
+  generateRoomData(diff);
+  drawMap();
+  renderMonsterCards();
+  renderEventCards();
+}
+
+function generateRoomData(diff){
+  const mList=MONSTERS[diff]||MONSTERS.moyen;
+  const isBoss=diff==='boss'||diff==='elite';
+  rooms.forEach((rm,i)=>{
+    const isFirst=i===0, isLast=i===rooms.length-1;
+    const hasTrap=!isFirst&&Math.random()*100<CFG.trapRate.val;
+    const hasWater=Math.random()*100<CFG.waterRate.val;
+    const hasEvent=!isFirst&&Math.random()*100<CFG.eventRate.val;
+    const hasTreasure=!isFirst&&(isLast||Math.random()<0.35);
+    const nb=isFirst?0:isLast?(isBoss?r(1,2):r(1,3)):r(0,3);
+    const monsters=[];
+    for(let m=0;m<nb;m++){
+      const name=isLast?(MONSTERS.boss[Math.floor(Math.random()*MONSTERS.boss.length)]):pick(mList);
+      const trait=Math.random()<0.5?pick(MONSTER_TRAITS):null;
+      const hp=diff==='trivial'?r(4,12):diff==='faible'?r(10,25):diff==='moyen'?r(20,50):diff==='elite'?r(40,100):r(80,200);
+      const atk=diff==='trivial'?'+2':diff==='faible'?'+3':diff==='moyen'?'+5':diff==='elite'?'+7':'+10';
+      monsters.push({name,trait,hp,atk});
+    }
+    const decors=[];
+    const nd=r(0,Math.floor(CFG.density.val/2));
+    for(let d=0;d<nd;d++)decors.push(pick(DECORS_LIST));
+    const event=hasEvent?pick(EVENTS_TABLE):null;
+    const rd={
+      name:isFirst?'Entrée':isLast?'Salle du Boss':pick(ROOM_NAMES),
+      isFirst,isLast,hasTrap,hasWater,hasTreasure,hasEvent,
+      monsters,decors,event,trap:hasTrap?pick(['Fléchettes','Gaz','Lame','Runes','Effondrement']):null,
+    };
+    roomData.push(rd);
+    if(monsters.length) monsterData.push({room:i,rd,monsters});
+    if(event) eventData.push({room:i,rd,event});
+  });
+}
+
+function drawMap(){
+  const canvas=document.getElementById('map');
+  const W=COLS*CS,H=ROWS*CS;
+  canvas.width=W; canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  const T=THEMES[CFG.theme.val]||THEMES.crypte;
+  ctx.fillStyle='#0a0805'; ctx.fillRect(0,0,W,H);
+
+  for(let row=0;row<ROWS;row++){
+    for(let col=0;col<COLS;col++){
+      if(grid[row][col]===1){
+        ctx.fillStyle=(row+col)%2===0?T.f1:T.f2;
+        ctx.fillRect(col*CS,row*CS,CS,CS);
+        ctx.strokeStyle='rgba(0,0,0,0.2)'; ctx.lineWidth=0.5;
+        ctx.strokeRect(col*CS+.25,row*CS+.25,CS-.5,CS-.5);
+      }
+    }
+  }
+
+  for(let row=0;row<ROWS;row++){
+    for(let col=0;col<COLS;col++){
+      if(grid[row][col]===1){
+        const dirs=[[0,-1],[0,1],[-1,0],[1,0]];
+        for(const[dr,dc]of dirs){
+          const nr=row+dr,nc=col+dc;
+          if(nr<0||nr>=ROWS||nc<0||nc>=COLS||grid[nr][nc]===0){
+            ctx.fillStyle=T.wEdge;
+            if(dc===-1)ctx.fillRect(col*CS,row*CS+1,2,CS-2);
+            else if(dc===1)ctx.fillRect(col*CS+CS-2,row*CS+1,2,CS-2);
+            else if(dr===-1)ctx.fillRect(col*CS+1,row*CS,CS-2,2);
+            else ctx.fillRect(col*CS+1,row*CS+CS-2,CS-2,2);
+          }
+        }
+      }
+    }
+  }
+
+  for(let i=1;i<rooms.length;i++){
+    const a=rooms[i-1],b=rooms[i];
+    const ax=Math.floor(a.x+a.w/2),ay=Math.floor(a.y+a.h/2);
+    const bx=Math.floor(b.x+b.w/2),by=Math.floor(b.y+b.h/2);
+    let dx,dy;
+    if(Math.abs(bx-ax)>Math.abs(by-ay)){dx=Math.floor((ax+bx)/2);dy=ay;}
+    else{dx=ax;dy=Math.floor((ay+by)/2);}
+    if(dx>=0&&dx<COLS&&dy>=0&&dy<ROWS&&grid[dy][dx]===1){
+      ctx.fillStyle='#7a3a10'; ctx.fillRect(dx*CS+3,dy*CS+3,CS-6,CS-6);
+      ctx.strokeStyle='#c07030'; ctx.lineWidth=1.5; ctx.strokeRect(dx*CS+3,dy*CS+3,CS-6,CS-6);
+      ctx.fillStyle='#e8b060'; ctx.fillRect(dx*CS+CS/2-1,dy*CS+CS/2-1,2,2);
+    }
+  }
+
+  rooms.forEach((rm,i)=>{ if(roomData[i]) drawRoomContents(ctx,rm,roomData[i]); });
+  rooms.forEach((rm,i)=>{ if(roomData[i]) drawRoomLabel(ctx,rm,roomData[i]); });
+}
+
+function drawRoomContents(ctx,rm,rd){
+  const px=rm.x*CS,py=rm.y*CS,pw=rm.w*CS,ph=rm.h*CS;
+  const cx=px+pw/2,cy=py+ph/2;
+  if(rd.isFirst){ctx.strokeStyle='#40a040';ctx.lineWidth=1.5;ctx.strokeRect(px+3,py+3,pw-6,ph-6);return;}
+  if(rd.isLast){ctx.strokeStyle='#c03030';ctx.lineWidth=2;ctx.strokeRect(px+3,py+3,pw-6,ph-6);}
+
+  if(rd.hasEvent){
+    ctx.fillStyle='#404a20'; ctx.fillRect(px+pw-CS+2,py+2,CS-4,CS-4);
+    ctx.strokeStyle='#80a030'; ctx.lineWidth=0.8; ctx.strokeRect(px+pw-CS+2,py+2,CS-4,CS-4);
+    ctx.fillStyle='#c0e060'; ctx.font=`${Math.max(7,CS-8)}px sans-serif`; ctx.textAlign='center';
+    ctx.fillText('!',px+pw-CS/2,py+CS-3);
+  }
+  if(rd.hasWater){
+    ctx.fillStyle='#1a3a7a'; ctx.fillRect(px+3,py+ph-CS+2,CS-4,CS-6);
+    ctx.strokeStyle='#3060c0'; ctx.lineWidth=0.5; ctx.strokeRect(px+3,py+ph-CS+2,CS-4,CS-6);
+  }
+  rd.decors.forEach((d,di)=>{
+    const ox=px+4+di*Math.min(CS+2,Math.floor((pw-8)/(rd.decors.length+1))),oy=py+4;
+    if(ox+7<px+pw-3&&oy+7<py+ph-3){
+      ctx.fillStyle='#2a4a2a'; ctx.fillRect(ox,oy,Math.min(7,CS-4),Math.min(7,CS-4));
+      ctx.strokeStyle='#407040'; ctx.lineWidth=0.5; ctx.strokeRect(ox,oy,Math.min(7,CS-4),Math.min(7,CS-4));
+    }
+  });
+  if(rd.hasTrap){
+    const tx=px+pw-14,ty=py+ph-14;
+    if(tx>px+4&&ty>py+4){
+      ctx.fillStyle='#6b1a8b';
+      ctx.beginPath();ctx.moveTo(tx+5,ty);ctx.lineTo(tx+10,ty+10);ctx.lineTo(tx,ty+10);ctx.closePath();ctx.fill();
+      ctx.strokeStyle='#a040d0';ctx.lineWidth=0.8;ctx.stroke();
+    }
+  }
+  if(rd.hasTreasure){
+    const tx=cx-4,ty=py+ph-14;
+    if(ty>py+6){
+      ctx.fillStyle='#b8960c'; ctx.fillRect(tx,ty,CS-4,CS-6);
+      ctx.strokeStyle='#e8c040'; ctx.lineWidth=1; ctx.strokeRect(tx,ty,CS-4,CS-6);
+    }
+  }
+  rd.monsters.forEach((m,mi)=>{
+    const spacing=Math.min(CS+2,Math.floor((pw-8)/Math.max(1,rd.monsters.length)));
+    const mx=px+6+mi*spacing,my=cy-CS/2+2;
+    if(mx+CS/2<px+pw-2){
+      ctx.fillStyle=rd.isLast?'#8b0000':'#8b1a1a';
+      ctx.beginPath();ctx.arc(mx+CS/2-2,my+CS/2-2,CS/2-2,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle=rd.isLast?'#ff3030':'#c03030';ctx.lineWidth=0.8;ctx.stroke();
+    }
+  });
+}
+
+function drawRoomLabel(ctx,rm,rd){
+  const cx=rm.x*CS+rm.w*CS/2,cy=rm.y*CS+rm.h*CS/2;
+  ctx.font=`bold ${Math.max(6,CS-10)}px sans-serif`;
+  ctx.textAlign='center';
+  ctx.fillStyle='rgba(0,0,0,0.6)';
+  ctx.fillText(rd.name,cx+.5,cy+.5);
+  ctx.fillStyle=rd.isLast?'#ff8080':rd.isFirst?'#80ff80':'#e8d8a0';
+  ctx.fillText(rd.name,cx,cy);
+}
+
+function renderMonsterCards(){
+  const div=document.getElementById('monster-cards');
+  if(!monsterData.length){div.innerHTML='<p style="color:var(--color-text-secondary);font-size:13px">Aucun monstre généré (difficulté ou salles vides).</p>';return;}
+  div.innerHTML=monsterData.map(({room,rd,monsters})=>`
+    <div class="card">
+      <h3><i class="ti ti-sword" aria-hidden="true"></i> Salle ${room+1} — ${rd.name}</h3>
+      ${monsters.map(m=>`
+        <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:0.5px solid var(--color-border-tertiary)">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <strong style="font-size:13px;color:var(--color-text-primary)">${m.name}</strong>
+            ${rd.isLast?'<span class="badge b-red">BOSS</span>':''}
+          </div>
+          ${m.trait?`<span class="badge b-purple">${m.trait}</span>`:''}
+          <div class="stat-row"><span>PV</span><span>${m.hp}</span></div>
+          <div class="stat-row"><span>Attaque</span><span>${m.atk}</span></div>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+function renderEventCards(){
+  const div=document.getElementById('event-cards');
+  if(!eventData.length){div.innerHTML='<p style="color:var(--color-text-secondary);font-size:13px">Aucun événement généré. Augmentez le taux dans la configuration.</p>';return;}
+  div.innerHTML=`<ul class="evt-list">${eventData.map(({room,rd,event})=>`
+    <li>
+      <span class="badge ${event.badge}" style="margin-right:6px">${event.type}</span>
+      <strong>Salle ${room+1} (${rd.name}) — ${event.name}</strong><br>
+      ${event.desc}
+    </li>`).join('')}</ul>`;
+}
+
+function rerollMonsters(){
+  const diff=CFG.diff.val;
+  const mList=MONSTERS[diff]||MONSTERS.moyen;
+  monsterData.forEach(({monsters,rd})=>{
+    monsters.forEach(m=>{
+      m.name=rd.isLast?(MONSTERS.boss[Math.floor(Math.random()*MONSTERS.boss.length)]):pick(mList);
+      m.trait=Math.random()<0.5?pick(MONSTER_TRAITS):null;
+      m.hp=diff==='trivial'?r(4,12):diff==='faible'?r(10,25):diff==='moyen'?r(20,50):diff==='elite'?r(40,100):r(80,200);
+    });
+  });
+  renderMonsterCards();
+}
+
+function rerollEvents(){
+  eventData.forEach(e=>{ e.event=pick(EVENTS_TABLE); });
+  renderEventCards();
+}
+
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
+  const tabMap={map:0,monsters:1,events:2,config:3};
+  document.querySelectorAll('.tab')[tabMap[name]].classList.add('on');
+  document.getElementById('pane-'+name).classList.add('on');
+}
+
+document.getElementById('map').addEventListener('click',e=>{
+  const canvas=document.getElementById('map');
+  const rect=canvas.getBoundingClientRect();
+  const sx=COLS*CS/rect.width,sy=ROWS*CS/rect.height;
+  const mx=Math.floor((e.clientX-rect.left)*sx/CS);
+  const my=Math.floor((e.clientY-rect.top)*sy/CS);
+  const info=document.getElementById('info');
+  for(let i=0;i<rooms.length;i++){
+    const rm=rooms[i];
+    if(mx>=rm.x&&mx<rm.x+rm.w&&my>=rm.y&&my<rm.y+rm.h){
+      const rd=roomData[i];
+      if(!rd){info.textContent='Salle inconnue.';return;}
+      let parts=[`<strong>Salle ${i+1} — ${rd.name}</strong>`];
+      if(rd.monsters.length) parts.push(`Monstres : ${rd.monsters.map(m=>m.name+(m.trait?' ('+m.trait+')':'')).join(', ')}`);
+      if(rd.hasTreasure) parts.push('Trésor présent');
+      if(rd.hasTrap) parts.push(`Piège : ${rd.trap}`);
+      if(rd.hasWater) parts.push('Fontaine / eau');
+      if(rd.hasEvent&&rd.event) parts.push(`Événement : ${rd.event.name}`);
+      if(rd.decors.length) parts.push(`Décors : ${rd.decors.join(', ')}`);
+      info.innerHTML=parts.join(' &nbsp;·&nbsp; ');
+      return;
+    }
+  }
+  info.textContent='Cliquez sur une salle pour voir ses détails.';
+});
+
+function exportPNG(){
+  const link=document.createElement('a');
+  link.download='dungeon_forge.png';
+  link.href=document.getElementById('map').toDataURL('image/png');
+  link.click();
+}
+
+buildConfigUI();
+generate();
+</script>
