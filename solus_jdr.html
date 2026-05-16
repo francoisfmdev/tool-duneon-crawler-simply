@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOLUS — JDR Solo</title>
+<style>
+:root {
+  --bg:#0f0f11;--bg2:#17171a;--bg3:#1e1e23;
+  --border:#2a2a32;--border2:#3a3a46;
+  --text:#e8e6e0;--text2:#9a9890;--text3:#5a5856;
+  --accent:#c8a96e;--accent2:#8b6f3e;
+  --red:#c05050;--green:#5a9060;
+  --font-t:'Palatino Linotype','Book Antiqua',Palatino,serif;
+  --font-b:'Georgia',serif;
+  --font-ui:system-ui,-apple-system,sans-serif;
+  --r:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font-b);font-size:14px;min-height:100vh}
+
+/* ── CHAR BAR ── */
+#char-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.bar-title{font-family:var(--font-t);font-size:16px;color:var(--accent);margin-right:8px;white-space:nowrap}
+#char-pills{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.char-pill{padding:4px 12px;border-radius:999px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:12px;cursor:pointer;transition:all .15s}
+.char-pill:hover{border-color:var(--accent2);color:var(--accent)}
+.char-pill.active{background:var(--accent2);border-color:var(--accent);color:#000;font-weight:600}
+.char-del{background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;padding:0 3px;line-height:1}
+.char-del:hover{color:var(--red)}
+.save-st{font-size:11px;color:var(--text3);padding:4px 10px;margin-left:auto;align-self:center}
+
+/* ── NAV ── */
+nav{display:flex;gap:2px;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;position:sticky;top:0;z-index:100;flex-wrap:wrap}
+.nav-btn{padding:10px 14px;font-family:var(--font-ui);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--text2);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+.nav-btn:hover{color:var(--text)}
+.nav-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* ── TABS ── */
+.tab{display:none;padding:22px 20px;max-width:940px;margin:0 auto}
+.tab.active{display:block}
+.stitle{font-family:var(--font-t);font-size:20px;color:var(--accent);margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.sub{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;margin-top:20px}
+
+/* ── CARDS / INPUTS ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.crow{display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+input[type=text],input[type=number],textarea,select{background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--font-b);font-size:13px;padding:6px 10px;outline:none;transition:border-color .15s}
+input:focus,textarea:focus,select:focus{border-color:var(--accent2)}
+input[type=number]{width:64px;text-align:center}
+input[type=color]{width:40px;height:28px;border:1px solid var(--border2);border-radius:4px;background:var(--bg3);cursor:pointer;padding:2px}
+label{font-size:12px;color:var(--text2);display:block;margin-bottom:4px}
+.fld{display:flex;flex-direction:column;gap:4px}
+
+/* ── BUTTONS ── */
+button{cursor:pointer;font-family:var(--font-ui);transition:all .15s}
+.btn{background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-size:12px;padding:6px 14px}
+.btn:hover{border-color:var(--accent2);color:var(--accent)}
+.bta{background:var(--accent2);border:1px solid var(--accent);color:#000;font-weight:600;padding:7px 18px;border-radius:4px;font-size:12px}
+.bta:hover{background:var(--accent)}
+.btd{background:transparent;border:1px solid #502020;color:var(--red);font-size:11px;padding:4px 10px;border-radius:4px}
+.btd:hover{background:#2a1010}
+.bts{font-size:11px;padding:3px 8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);border-radius:3px}
+.bts:hover{color:var(--accent);border-color:var(--accent2)}
+.bti{background:none;border:none;color:var(--text3);font-size:15px;padding:2px 5px}
+.bti:hover{color:var(--accent)}
+
+/* ── ATTRS ── */
+.agrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px;margin-bottom:16px}
+.acard{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+.aname{background:none;border:none;color:var(--accent);font-family:var(--font-t);font-size:15px;width:100%;outline:none}
+.aname:focus{border-bottom:1px solid var(--accent2)}
+.aval{font-size:36px;font-weight:bold;color:var(--text);text-align:center;width:80px;background:none;border:none;outline:none;font-family:var(--font-t)}
+.aval:focus{background:var(--bg2);border-radius:4px}
+.amod{font-size:13px;color:var(--text2);text-align:center}
+.adesc{width:100%;font-size:11px;background:none;border:none;color:var(--text3);outline:none;font-family:var(--font-b)}
+
+/* ── HP / ROLL ── */
+.hpwrap{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;margin-top:6px}
+.hpbar{height:100%;border-radius:4px;transition:width .3s,background .3s}
+.rpanel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px}
+.rctrl{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px}
+.rbox{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:14px;text-align:center;min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.rbig{font-family:var(--font-t);font-size:40px;color:var(--accent);line-height:1}
+.rlabel{font-size:12px;color:var(--text2)}.rdetail{font-size:11px;color:var(--text3)}
+.rs{color:var(--green)!important}.rf{color:var(--red)!important}.rc{color:#ffd700!important}
+.advrow{display:flex;gap:6px}
+.advbtn{flex:1;padding:6px;font-size:11px;border-radius:4px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2)}
+.advbtn.son{border-color:var(--accent);color:var(--accent);background:#2a1e00}
+.advbtn.sdis{border-color:var(--red);color:var(--red);background:#1a0a0a}
+
+/* ── LISTS ── */
+.trow{display:grid;grid-template-columns:1fr 110px 130px auto;gap:8px;align-items:center;margin-bottom:6px}
+.litem{display:grid;gap:8px;align-items:center;margin-bottom:6px}
+
+/* ── BLOCS ── */
+.bcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.bhead{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border)}
+.bbadge{font-size:10px;padding:2px 8px;border-radius:999px;border:1px solid;white-space:nowrap}
+.btitle{background:none;border:none;color:var(--text);font-family:var(--font-t);font-size:15px;flex:1;outline:none}
+.btitle:focus{border-bottom:1px solid var(--accent2)}
+.bbody{padding:12px 14px}
+.bfld{margin-bottom:8px}
+.bfld label{font-size:11px;color:var(--text3);margin-bottom:3px}
+.bfld input,.bfld textarea{width:100%}
+.bfld textarea{min-height:70px;resize:vertical;line-height:1.65}
+.tchooser{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.tbtn{padding:6px 14px;border-radius:var(--r);border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:12px}
+.tbtn:hover{border-color:var(--accent2);color:var(--accent)}
+
+/* ── COMBAT ── */
+.ccrd{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px}
+.chead{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.cname{font-family:var(--font-t);font-size:16px;color:var(--text);background:none;border:none;outline:none;min-width:100px}
+.cname:focus{border-bottom:1px solid var(--accent2)}
+.ctag{font-size:10px;padding:2px 8px;border-radius:999px;border:1px solid}
+.th{border-color:var(--accent2);color:var(--accent)}.ta{border-color:var(--green);color:var(--green)}.te{border-color:var(--red);color:var(--red)}
+.cstats{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.smini{display:flex;flex-direction:column;align-items:center;gap:2px}
+.smini label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.smini input{width:52px;text-align:center;font-size:13px}
+.hped{display:flex;align-items:center;gap:4px}
+.hped input{width:52px}
+.iord{background:var(--bg3);border-radius:var(--r);padding:10px 14px;margin-bottom:12px}
+.irow{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px}
+.irow:last-child{border-bottom:none}
+.inum{font-family:var(--font-t);font-size:18px;color:var(--accent);min-width:36px;text-align:center}
+
+/* ── JOURNAL ── */
+.jcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px}
+.jhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.jtitle{font-family:var(--font-t);font-size:15px;color:var(--accent);background:none;border:none;outline:none;flex:1;margin-right:12px}
+.jtitle:focus{border-bottom:1px solid var(--accent2)}
+.jbody{width:100%;min-height:100px;resize:vertical;font-size:13px;line-height:1.7}
+
+/* ── ORACLE TABLES ── */
+.otcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:12px;overflow:hidden}
+.othead{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.otname{background:none;border:none;color:var(--accent);font-family:var(--font-t);font-size:16px;flex:1;outline:none}
+.otname:focus{border-bottom:1px solid var(--accent2)}
+.otbody{padding:12px 14px}
+.otrow{display:grid;grid-template-columns:36px 80px 1fr auto;gap:6px;align-items:center;margin-bottom:5px}
+.otrow .range-lbl{font-family:var(--font-t);font-size:14px;color:var(--accent);text-align:center;background:var(--bg3);border-radius:4px;padding:4px 6px;font-weight:bold}
+.otrow input[type=text]{width:100%}
+.otr-from,.otr-to{width:52px!important}
+.ot-result{background:var(--bg3);border-radius:var(--r);padding:14px;margin-top:10px;text-align:center}
+.ot-res-big{font-family:var(--font-t);font-size:28px;color:var(--accent)}
+.ot-res-entry{font-size:14px;color:var(--text);margin-top:4px}
+.ot-res-detail{font-size:11px;color:var(--text3);margin-top:4px}
+
+/* ── NOTE BLOCKS IN ORACLE ── */
+.oncard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.onhead{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border)}
+.ontitle{background:none;border:none;color:var(--text);font-family:var(--font-t);font-size:15px;flex:1;outline:none}
+.ontitle:focus{border-bottom:1px solid var(--accent2)}
+.onbody{padding:12px 14px}
+.onbody textarea{width:100%;min-height:80px;resize:vertical;line-height:1.7}
+
+/* ── THEME EDITOR ── */
+.theme-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px}
+.theme-swatch{display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px}
+.theme-swatch label{margin:0;flex:1;font-size:12px;color:var(--text2)}
+.preset-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.preset-btn{padding:6px 16px;border-radius:var(--r);border:1px solid var(--border2);font-size:12px;cursor:pointer;font-family:var(--font-ui)}
+
+/* ── UTILS ── */
+.fx{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.sp{flex:1}
+hr.sep{border:none;border-top:1px solid var(--border);margin:16px 0}
+
+/* ── PRINT ── */
+@media print{
+  #char-bar,nav,.bts,.btn,.bta,.btd,.bti,.rpanel,.advrow,.tchooser,.theme-grid,.preset-row{display:none!important}
+  .tab{display:block!important;page-break-after:always}
+  .tab:last-child{page-break-after:avoid}
+  body{background:white;color:black;font-size:12px}
+  :root{--text:black;--text2:#444;--text3:#888;--accent:#7a5020;--bg2:#f8f8f8;--bg3:#f0f0f0}
+  .stitle,.otname,.jtitle{color:#7a5020}
+  .card,.jcard,.ccrd,.bcard,.otcard,.oncard{background:white;border:1px solid #ccc}
+}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- ═══ CHAR BAR ═══ -->
+<div id="char-bar">
+  <span class="bar-title">SOLUS</span>
+  <div id="char-pills"></div>
+  <button class="bts" onclick="newChar()">+ Nouveau personnage</button>
+  <button class="bts" onclick="showTab('theme',document.querySelector('[data-tab=theme]'))" style="margin-left:4px">🎨 Thème</button>
+  <button class="bts" onclick="window.print()" style="margin-left:4px">⎙ PDF</button>
+  <span class="save-st" id="sst">—</span>
+</div>
+
+<!-- ═══ NAV ═══ -->
+<nav>
+  <button class="nav-btn active" data-tab="perso" onclick="showTab('perso',this)">Personnage</button>
+  <button class="nav-btn" data-tab="blocs" onclick="showTab('blocs',this)">Blocs</button>
+  <button class="nav-btn" data-tab="talents" onclick="showTab('talents',this)">Talents</button>
+  <button class="nav-btn" data-tab="sorts" onclick="showTab('sorts',this)">Sorts & Compétences</button>
+  <button class="nav-btn" data-tab="combat" onclick="showTab('combat',this)">Combat</button>
+  <button class="nav-btn" data-tab="journal" onclick="showTab('journal',this)">Journal</button>
+  <button class="nav-btn" data-tab="oracle" onclick="showTab('oracle',this)">Oracle</button>
+  <button class="nav-btn" data-tab="theme" onclick="showTab('theme',this)" style="display:none">Thème</button>
+</nav>
+
+<!-- ═══════════════ PERSONNAGE ═══════════════ -->
+<div class="tab active" id="tab-perso">
+  <div class="stitle">Fiche de personnage</div>
+  <div class="card">
+    <div class="crow">
+      <div class="fld" style="flex:2"><label>Nom</label><input type="text" id="cn" placeholder="Nom du personnage" oninput="sc('char.name',this.value)"></div>
+      <div class="fld" style="flex:2"><label>Concept</label><input type="text" id="cc" placeholder="ex. Chasseuse de primes désenchantée" oninput="sc('char.concept',this.value)"></div>
+      <div class="fld"><label>Niveau</label><input type="number" id="clv" value="1" min="1" max="20" oninput="sc('char.level',+this.value)"></div>
+      <div class="fld"><label>XP</label><input type="number" id="cxp" value="0" oninput="sc('char.xp',+this.value)"></div>
+    </div>
+    <div class="fld"><label>Background</label><input type="text" id="cbg" placeholder="…" oninput="sc('char.bg',this.value)"></div>
+  </div>
+
+  <div class="sub">Attributs <button class="bts" onclick="addAttr()" style="margin-left:8px">+ Ajouter</button></div>
+  <div class="agrid" id="agrid"></div>
+
+  <div class="sub">Points de vie & CA</div>
+  <div class="card">
+    <div class="fx" style="gap:20px;flex-wrap:wrap">
+      <div class="fld"><label>PV max</label><div class="fx"><input type="number" id="hmax" value="10" min="1" oninput="updHP()"><span style="font-size:12px;color:var(--text3)">10 + mod Physique</span></div></div>
+      <div class="fld"><label>PV actuels</label><div class="fx"><button class="bts" onclick="chHP(-1)">−</button><input type="number" id="hcur" value="10" min="0" oninput="updHP()"><button class="bts" onclick="chHP(1)">+</button></div></div>
+      <div class="fld"><label>CA</label><input type="number" id="cca" value="10" min="1" oninput="sc('ca',+this.value)"></div>
+      <div class="fld"><label>Vitesse</label><input type="text" id="csp" value="30m" style="width:72px" oninput="sc('speed',this.value)"></div>
+    </div>
+    <div class="hpwrap" style="margin-top:12px;height:12px"><div class="hpbar" id="hpbar" style="width:100%;background:var(--green)"></div></div>
+    <div style="text-align:right;font-size:11px;color:var(--text3);margin-top:4px" id="hplbl">10 / 10</div>
+  </div>
+
+  <div class="sub">Sauvegardes</div>
+  <div class="card">
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px">d20 + mod attribut (+ 2 si maîtrisé). Cocher = maîtrisé.</div>
+    <div id="savelist" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px"></div>
+  </div>
+
+  <div class="sub">Jet d'action</div>
+  <div class="rpanel">
+    <div class="rctrl">
+      <div class="fld"><label>Attribut</label><select id="rattr" style="padding:6px 10px;font-size:13px"></select></div>
+      <div class="fld"><label>Bonus</label><input type="number" id="rbon" value="0" style="width:70px"></div>
+      <div class="fld"><label>Seuil (DD / CA)</label><input type="number" id="rdc" value="13" style="width:70px"></div>
+      <div class="fld"><label>Mode</label><div class="advrow">
+        <button class="advbtn" id="adis" onclick="setAdv('dis','a')">Désav.</button>
+        <button class="advbtn son" id="anor" onclick="setAdv('nor','a')">Normal</button>
+        <button class="advbtn" id="aadv" onclick="setAdv('adv','a')">Avantage</button>
+      </div></div>
+      <button class="bta" onclick="rollAct()">Lancer le d20</button>
+    </div>
+    <div class="rbox" id="rres"><div class="rlabel" style="color:var(--text3)">Configurez et lancez…</div></div>
+  </div>
+</div>
+
+<!-- ═══════════════ BLOCS ═══════════════ -->
+<div class="tab" id="tab-blocs">
+  <div class="stitle">Blocs de texte</div>
+  <div style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.65">Créez des blocs structurés pour organiser les informations de votre aventure.</div>
+  <div class="tchooser">
+    <button class="tbtn" onclick="addBloc('pnj')">+ PNJ</button>
+    <button class="tbtn" onclick="addBloc('lieu')">+ Lieu</button>
+    <button class="tbtn" onclick="addBloc('objet')">+ Objet</button>
+    <button class="tbtn" onclick="addBloc('quete')">+ Quête</button>
+    <button class="tbtn" onclick="addBloc('faction')">+ Faction</button>
+    <button class="tbtn" onclick="addBloc('rumeur')">+ Rumeur / Indice</button>
+    <button class="tbtn" onclick="addBloc('note')">+ Note libre</button>
+  </div>
+  <div id="blist"></div>
+</div>
+
+<!-- ═══════════════ TALENTS ═══════════════ -->
+<div class="tab" id="tab-talents">
+  <div class="stitle">Talents & Maîtrises</div>
+  <div style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.65">Un talent applicable ajoute son bonus au jet.<br><strong style="color:var(--accent)">Novice +1 · Apprenti +2 · Compétent +3 · Expert +4 · Maître +5</strong></div>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:1fr 110px 130px auto;gap:8px;margin-bottom:8px">
+      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Talent</span>
+      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Attribut</span>
+      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Maîtrise</span>
+      <span></span>
+    </div>
+    <div id="tlist"></div>
+    <button class="btn" onclick="addTalent()" style="margin-top:8px">+ Ajouter un talent</button>
+  </div>
+</div>
+
+<!-- ═══════════════ SORTS ═══════════════ -->
+<div class="tab" id="tab-sorts">
+  <div class="stitle">Sorts & Compétences</div>
+  <div class="sub">Sorts <button class="bts" onclick="addSpell()" style="margin-left:8px">+ Ajouter</button></div>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:1fr 70px 80px 80px auto;gap:8px;margin-bottom:8px">
+      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Nom</span>
+      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">DD</span>
+      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Portée</span>
+      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Dégâts</span>
+      <span></span>
+    </div>
+    <div id="splist"></div>
+    <div style="font-size:12px;color:var(--text3);margin-top:10px">DD = d20 + attribut lanceur vs CA cible (10 + mod Physique ou Agilité cible)</div>
+  </div>
+  <div class="sub">Compétences <button class="bts" onclick="addSkill()" style="margin-left:8px">+ Ajouter</button></div>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:1fr 110px 1fr auto;gap:8px;margin-bottom:8px">
+      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Compétence</span>
+      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Attribut</span>
+      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Notes</span>
+      <span></span>
+    </div>
+    <div id="sklist"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ COMBAT ═══════════════ -->
+<div class="tab" id="tab-combat">
+  <div class="stitle">Suivi de combat</div>
+  <div class="fx" style="margin-bottom:16px">
+    <button class="bta" onclick="addC('hero')">+ Héros</button>
+    <button class="btn" onclick="addC('ally')">+ Allié</button>
+    <button class="btn" onclick="addC('enemy')">+ Ennemi</button>
+    <button class="btn" onclick="rollInits()" style="margin-left:auto">⚄ Initiative</button>
+    <button class="bts" onclick="clearDead()">Retirer morts</button>
+    <button class="btd" onclick="clearCombat()">Vider</button>
+  </div>
+  <div class="sub">Ordre d'initiative</div>
+  <div class="iord" id="iord" style="display:none"></div>
+  <div class="sub">Combattants</div>
+  <div id="clist"></div>
+  <hr class="sep">
+  <div class="sub">Jet d'attaque rapide</div>
+  <div class="rpanel">
+    <div class="rctrl">
+      <div class="fld"><label>Attribut attaquant</label><select id="cattr" style="padding:6px 10px;font-size:13px"></select></div>
+      <div class="fld"><label>Bonus talent</label><input type="number" id="cbon" value="0" style="width:64px"></div>
+      <div class="fld"><label>CA cible</label><input type="number" id="cca2" value="10" style="width:64px"></div>
+      <div class="fld"><label>Mode</label><div class="advrow">
+        <button class="advbtn" id="cdis" onclick="setAdv('dis','c')">Désav.</button>
+        <button class="advbtn son" id="cnor" onclick="setAdv('nor','c')">Normal</button>
+        <button class="advbtn" id="cadv" onclick="setAdv('adv','c')">Avantage</button>
+      </div></div>
+      <div class="fld"><label>Dés dégâts</label><select id="cdmg" style="padding:6px 10px;font-size:13px"><option>d4</option><option>d6</option><option selected>d8</option><option>d10</option><option>d12</option><option>2d6</option></select></div>
+      <button class="bta" onclick="rollAtk()">Attaquer</button>
+    </div>
+    <div class="rbox" id="cres"><div class="rlabel" style="color:var(--text3)">Prêt…</div></div>
+  </div>
+</div>
+
+<!-- ═══════════════ JOURNAL ═══════════════ -->
+<div class="tab" id="tab-journal">
+  <div class="stitle">Journal d'aventure</div>
+  <div class="fx" style="margin-bottom:16px">
+    <button class="bta" onclick="addEntry()">+ Nouvelle entrée</button>
+    <input type="text" id="jsearch" placeholder="Rechercher…" oninput="renderJournal(this.value)" style="flex:1">
+  </div>
+  <div id="jlist"></div>
+</div>
+
+<!-- ═══════════════ ORACLE ═══════════════ -->
+<div class="tab" id="tab-oracle">
+  <div class="stitle">Oracle & Tables</div>
+
+  <!-- Oracle classique -->
+  <div class="card" style="text-align:center;padding:20px">
+    <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Question fermée → estimez la probabilité → lancez 2d10.</div>
+    <div class="fx" style="justify-content:center;margin-bottom:14px">
+      <div class="fld" style="align-items:center">
+        <label>Probabilité</label>
+        <select id="oprob" style="padding:7px 12px;font-size:13px">
+          <option value="3">Quasi impossible (3+)</option>
+          <option value="6">Très improbable (6+)</option>
+          <option value="9">Improbable (9+)</option>
+          <option value="12" selected>Cinquante-cinquante (12+)</option>
+          <option value="15">Probable (15+)</option>
+          <option value="18">Très probable (18+)</option>
+          <option value="20">Quasi certain (20)</option>
+        </select>
+      </div>
+    </div>
+    <button class="bta" onclick="rollOracle()" style="font-size:14px;padding:9px 26px">Consulter l'Oracle</button>
+    <div id="ores" style="font-family:var(--font-t);font-size:32px;padding:16px 0;color:var(--text3)">—</div>
+    <div style="font-size:12px;color:var(--text3)" id="odet"></div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px">
+    <div class="card" style="text-align:center;padding:10px"><div style="font-family:var(--font-t);font-size:14px;color:var(--green)">Oui, et…</div><div style="font-size:11px;color:var(--text2)">Succès + bonus</div></div>
+    <div class="card" style="text-align:center;padding:10px"><div style="font-family:var(--font-t);font-size:14px;color:var(--green)">Oui</div><div style="font-size:11px;color:var(--text2)">Succès simple</div></div>
+    <div class="card" style="text-align:center;padding:10px"><div style="font-family:var(--font-t);font-size:14px;color:#a09030">Oui, mais…</div><div style="font-size:11px;color:var(--text2)">Succès + complication</div></div>
+    <div class="card" style="text-align:center;padding:10px"><div style="font-family:var(--font-t);font-size:14px;color:#a09030">Non, mais…</div><div style="font-size:11px;color:var(--text2)">Échec + consolation</div></div>
+    <div class="card" style="text-align:center;padding:10px"><div style="font-family:var(--font-t);font-size:14px;color:var(--red)">Non</div><div style="font-size:11px;color:var(--text2)">Échec simple</div></div>
+    <div class="card" style="text-align:center;padding:10px"><div style="font-family:var(--font-t);font-size:14px;color:var(--red)">Non, et…</div><div style="font-size:11px;color:var(--text2)">Échec aggravé</div></div>
+  </div>
+
+  <hr class="sep">
+
+  <!-- Tables d20 -->
+  <div class="fx" style="margin-bottom:12px">
+    <div class="stitle" style="margin:0;border:none;padding:0;font-size:18px">Tables aléatoires (d20)</div>
+    <div class="sp"></div>
+    <button class="bta" onclick="addOTable()">+ Nouvelle table</button>
+  </div>
+  <div style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6">Créez vos propres tables d20. Définissez des plages (1-5, 6-10…) avec leurs résultats. Lancez d20 pour tirer un résultat.</div>
+  <div id="otlist"></div>
+
+  <hr class="sep">
+
+  <!-- Notes Oracle -->
+  <div class="fx" style="margin-bottom:12px">
+    <div class="stitle" style="margin:0;border:none;padding:0;font-size:18px">Notes & Chaos</div>
+    <div class="sp"></div>
+    <button class="btn" onclick="addONote()">+ Note</button>
+  </div>
+
+  <!-- Niveau de chaos -->
+  <div class="card">
+    <div class="fx" style="margin-bottom:10px">
+      <label style="margin:0;font-size:13px;color:var(--text)">Niveau de Chaos :</label>
+      <button class="bts" onclick="chChaos(-1)">−</button>
+      <span id="chval" style="font-family:var(--font-t);font-size:28px;color:var(--accent);min-width:36px;text-align:center">5</span>
+      <button class="bts" onclick="chChaos(1)">+</button>
+      <span style="font-size:12px;color:var(--text3)" id="chlbl">Équilibre instable</span>
+    </div>
+    <div style="font-size:12px;color:var(--text2);line-height:1.7">Début : 5. +1 sur échec/perte. −1 sur objectif atteint.<br>NC ≥ 5 : d10 au début de scène → sur 1, événement aléatoire (d8).</div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div style="display:grid;grid-template-columns:40px 1fr;gap:6px 12px;font-size:13px">
+      <b style="color:var(--accent);font-family:var(--font-t)">d8</b><span style="color:var(--text3);font-size:11px;text-transform:uppercase;letter-spacing:.06em">Événement aléatoire</span>
+      <b style="color:var(--accent)">1</b><span style="color:var(--text2)">PNJ connu réapparaît de façon inattendue</span>
+      <b style="color:var(--accent)">2</b><span style="color:var(--text2)">Nouvelle complication sur votre objectif</span>
+      <b style="color:var(--accent)">3</b><span style="color:var(--text2)">Ressource perdue, volée ou dégradée</span>
+      <b style="color:var(--accent)">4</b><span style="color:var(--text2)">Révélation sur un mystère existant</span>
+      <b style="color:var(--accent)">5</b><span style="color:var(--text2)">Rencontre imprévue (hostile, neutre, alliée)</span>
+      <b style="color:var(--accent)">6</b><span style="color:var(--text2)">L'environnement change brusquement</span>
+      <b style="color:var(--accent)">7</b><span style="color:var(--text2)">Objectif urgent ou menacé</span>
+      <b style="color:var(--accent)">8</b><span style="color:var(--text2)">Coup de chance — quelque chose aide</span>
+    </div>
+  </div>
+
+  <div id="onlist"></div>
+</div>
+
+<!-- ═══════════════ THÈME ═══════════════ -->
+<div class="tab" id="tab-theme">
+  <div class="stitle">Personnalisation du thème</div>
+  <div style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.65">Choisissez un thème prédéfini ou personnalisez chaque couleur. Le thème est sauvegardé avec votre personnage.</div>
+
+  <div class="sub">Thèmes prédéfinis</div>
+  <div class="preset-row">
+    <button class="preset-btn" style="background:#0f0f11;color:#c8a96e;border-color:#2a2a32" onclick="applyPreset('dark')">Nuit (défaut)</button>
+    <button class="preset-btn" style="background:#f5f0e8;color:#5a3010;border-color:#d0c0a0" onclick="applyPreset('parchment')">Parchemin</button>
+    <button class="preset-btn" style="background:#0a1a0a;color:#5aaa60;border-color:#1a3a1a" onclick="applyPreset('forest')">Forêt sombre</button>
+    <button class="preset-btn" style="background:#0a0a1a;color:#7070ee;border-color:#1a1a3a" onclick="applyPreset('arcane')">Arcane</button>
+    <button class="preset-btn" style="background:#1a0a0a;color:#cc5050;border-color:#3a1a1a" onclick="applyPreset('blood')">Sang & fer</button>
+    <button class="preset-btn" style="background:#0f1520;color:#60a0c8;border-color:#1a2a3a" onclick="applyPreset('ocean')">Océan</button>
+    <button class="preset-btn" style="background:#f0f0f0;color:#333;border-color:#ccc" onclick="applyPreset('light')">Clair</button>
+  </div>
+
+  <div class="sub">Couleurs personnalisées</div>
+  <div class="theme-grid" id="theme-grid"></div>
+
+  <div class="sub">Aperçu</div>
+  <div class="card" style="font-size:13px;line-height:1.8">
+    <div style="font-family:var(--font-t);font-size:18px;color:var(--accent);margin-bottom:8px">Titre en couleur accent</div>
+    <div style="color:var(--text)">Texte principal — couleur de base</div>
+    <div style="color:var(--text2)">Texte secondaire — informations supplémentaires</div>
+    <div style="color:var(--text3)">Texte tertiaire — labels et indications discrètes</div>
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="bta" style="pointer-events:none">Bouton accent</button>
+      <button class="btn" style="pointer-events:none">Bouton normal</button>
+      <button class="btd" style="pointer-events:none">Danger</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══ CONSTANTS ═══
+const SK='solus_v4';
+const DATTRS=[
+  {id:'ph',name:'Physique',val:10,desc:'Force, endurance, résistance'},
+  {id:'ag',name:'Agilité',val:10,desc:'Vitesse, précision, discrétion'},
+  {id:'sp',name:'Esprit',val:10,desc:'Savoir, analyse, perception'},
+  {id:'so',name:'Social',val:10,desc:'Persuasion, charisme, tromperie'},
+];
+const BTYPES={
+  pnj:   {label:'PNJ',     col:'#4a7aaa',flds:['Rôle','Trait dominant','Motivation','Relation','Localisation','Notes']},
+  lieu:  {label:'Lieu',    col:'#5a9060',flds:['Type','Ambiance','Habitants','Danger','Points d\'intérêt','Notes']},
+  objet: {label:'Objet',   col:'#c8a96e',flds:['Type','Effet / Propriété','Valeur','Origine','Notes']},
+  quete: {label:'Quête',   col:'#8060a0',flds:['Objectif','Commanditaire','Récompense','Obstacles','Statut','Notes']},
+  faction:{label:'Faction',col:'#c05050',flds:['Idéologie','Chef','Ressources','Alliés','Ennemis','Notes']},
+  rumeur:{label:'Rumeur',  col:'#a08020',flds:['Source','Contenu','Fiabilité','Lié à','Notes']},
+  note:  {label:'Note',    col:'#5a5856',flds:['Contenu']},
+};
+const CLBLS={1:'Calme total',2:'Serein',3:'Stable',4:'Léger frémissement',5:'Équilibre instable',6:'Tension montante',7:'Situation critique',8:'Chaos croissant',9:'Chaos total'};
+const THEME_VARS=[
+  {key:'--bg',       label:'Fond principal'},
+  {key:'--bg2',      label:'Fond cartes'},
+  {key:'--bg3',      label:'Fond champs'},
+  {key:'--border',   label:'Bordure principale'},
+  {key:'--border2',  label:'Bordure secondaire'},
+  {key:'--text',     label:'Texte principal'},
+  {key:'--text2',    label:'Texte secondaire'},
+  {key:'--text3',    label:'Texte tertiaire'},
+  {key:'--accent',   label:'Couleur accent'},
+  {key:'--accent2',  label:'Accent foncé (boutons)'},
+  {key:'--red',      label:'Danger / Ennemi'},
+  {key:'--green',    label:'Succès / Allié'},
+];
+const PRESETS={
+  dark:      {'--bg':'#0f0f11','--bg2':'#17171a','--bg3':'#1e1e23','--border':'#2a2a32','--border2':'#3a3a46','--text':'#e8e6e0','--text2':'#9a9890','--text3':'#5a5856','--accent':'#c8a96e','--accent2':'#8b6f3e','--red':'#c05050','--green':'#5a9060'},
+  parchment: {'--bg':'#f5f0e8','--bg2':'#ede8dc','--bg3':'#e5dfd0','--border':'#c8b898','--border2':'#b8a888','--text':'#2a1a08','--text2':'#6a4a28','--text3':'#9a7a58','--accent':'#8b4010','--accent2':'#6a3008','--red':'#a02020','--green':'#2a6020'},
+  forest:    {'--bg':'#0a1a0a','--bg2':'#0f220f','--bg3':'#142814','--border':'#1a3a1a','--border2':'#2a4a2a','--text':'#d0e8d0','--text2':'#80a880','--text3':'#4a6a4a','--accent':'#5aaa60','--accent2':'#3a7a40','--red':'#c06050','--green':'#50c060'},
+  arcane:    {'--bg':'#0a0a1a','--bg2':'#0f0f22','--bg3':'#14142a','--border':'#1a1a3a','--border2':'#2a2a4a','--text':'#d8d8f8','--text2':'#8888c8','--text3':'#4848a0','--accent':'#9090ee','--accent2':'#6060c0','--red':'#c050a0','--green':'#50a0c8'},
+  blood:     {'--bg':'#1a0a0a','--bg2':'#220f0f','--bg3':'#2a1414','--border':'#3a1a1a','--border2':'#4a2a2a','--text':'#f0d8d8','--text2':'#c08888','--text3':'#a06060','--accent':'#dd4444','--accent2':'#aa2222','--red':'#ff4040','--green':'#88aa60'},
+  ocean:     {'--bg':'#0f1520','--bg2':'#141e2a','--bg3':'#1a2535','--border':'#1a2a3a','--border2':'#2a3a4a','--text':'#d0e8f8','--text2':'#7090a8','--text3':'#405870','--accent':'#60a0c8','--accent2':'#3a7898','--red':'#c06070','--green':'#50a888'},
+  light:     {'--bg':'#f0f0f0','--bg2':'#ffffff','--bg3':'#e8e8e8','--border':'#cccccc','--border2':'#bbbbbb','--text':'#111111','--text2':'#444444','--text3':'#888888','--accent':'#7a5020','--accent2':'#5a3808','--red':'#c02020','--green':'#208020'},
+};
+
+// ═══ STATE ═══
+let chars=[],curId=null,aMode='nor',cMode='nor';
+
+function blank(name='Nouveau personnage'){
+  return {
+    id:'c'+Date.now()+Math.random().toString(36).slice(2,5),
+    char:{name,concept:'',level:1,xp:0,bg:''},
+    attrs:JSON.parse(JSON.stringify(DATTRS)),
+    hp:{cur:10,max:10},ca:10,speed:'30m',saveProf:{},
+    talents:[],spells:[],skills:[],combatants:[],journal:[],blocs:[],
+    oracle:{tables:[],notes:[]},
+    chaos:5,
+    theme:{},
+  };
+}
+
+// ═══ STORAGE ═══
+function loadAll(){
+  try{const r=localStorage.getItem(SK);if(r)chars=JSON.parse(r);}catch(e){}
+  if(!chars.length)chars=[blank('Mon premier personnage')];
+  curId=chars[0].id;
+}
+function saveAll(){
+  try{localStorage.setItem(SK,JSON.stringify(chars));}catch(e){}
+  const el=document.getElementById('sst');
+  el.textContent='✓ Sauvegardé';el.style.color='var(--green)';
+  clearTimeout(el._t);el._t=setTimeout(()=>{el.textContent='—';el.style.color='var(--text3)';},1400);
+}
+function cur(){return chars.find(c=>c.id===curId)||chars[0];}
+function sc(p,v){const parts=p.split('.');let o=cur();for(let i=0;i<parts.length-1;i++)o=o[parts[i]];o[parts[parts.length-1]]=v;saveAll();}
+function gv(id){const e=document.getElementById(id);return e?e.value:'';}
+function sv(id,v){const e=document.getElementById(id);if(e)e.value=v;}
+function md(v){return Math.floor((v-10)/2);}
+function ms(v){const m=md(v);return(m>=0?'+':'')+m;}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ═══ CHAR BAR ═══
+function renderBar(){
+  const p=document.getElementById('char-pills');p.innerHTML='';
+  chars.forEach(c=>{
+    const w=document.createElement('span');w.style.cssText='display:inline-flex;align-items:center;gap:2px';
+    const b=document.createElement('button');
+    b.className='char-pill'+(c.id===curId?' active':'');
+    b.textContent=c.char.name||'Sans nom';b.onclick=()=>switchChar(c.id);
+    const d=document.createElement('button');d.className='char-del';d.textContent='×';d.title='Supprimer';
+    d.onclick=(ev)=>{ev.stopPropagation();delChar(c.id);};
+    w.appendChild(b);w.appendChild(d);p.appendChild(w);
+  });
+}
+function switchChar(id){curId=id;renderBar();renderAll();applyTheme();}
+function newChar(){
+  const name=prompt('Nom du nouveau personnage :','Nouveau personnage');
+  if(!name)return;
+  const c=blank(name);chars.push(c);curId=c.id;saveAll();renderBar();renderAll();applyTheme();
+}
+function delChar(id){
+  if(chars.length<=1){alert('Il faut au moins un personnage.');return;}
+  if(!confirm('Supprimer ce personnage ?'))return;
+  chars=chars.filter(c=>c.id!==id);
+  if(curId===id)curId=chars[0].id;
+  saveAll();renderBar();renderAll();applyTheme();
+}
+
+// ═══ TABS ═══
+function showTab(n,btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+n).classList.add('active');
+  if(btn)btn.classList.add('active');
+}
+
+// ═══ THEME ═══
+function applyTheme(){
+  const th=cur().theme||{};
+  const base=PRESETS.dark;
+  THEME_VARS.forEach(({key})=>{
+    const val=th[key]||base[key];
+    if(val)document.documentElement.style.setProperty(key,val);
+  });
+  renderThemeEditor();
+}
+function applyPreset(name){
+  const p=PRESETS[name];if(!p)return;
+  if(!cur().theme)cur().theme={};
+  Object.assign(cur().theme,p);
+  saveAll();applyTheme();
+}
+function setThemeVar(key,val){
+  if(!cur().theme)cur().theme={};
+  cur().theme[key]=val;
+  document.documentElement.style.setProperty(key,val);
+  saveAll();
+}
+function getCssVar(key){
+  const th=cur().theme||{};
+  return th[key]||PRESETS.dark[key]||getComputedStyle(document.documentElement).getPropertyValue(key).trim();
+}
+function renderThemeEditor(){
+  const g=document.getElementById('theme-grid');if(!g)return;
+  g.innerHTML='';
+  THEME_VARS.forEach(({key,label})=>{
+    const val=getCssVar(key);
+    const d=document.createElement('div');d.className='theme-swatch';
+    d.innerHTML=`<label>${label}<br><span style="font-size:10px;color:var(--text3)">${key}</span></label>
+      <input type="color" value="${val}" onchange="setThemeVar('${key}',this.value)" oninput="setThemeVar('${key}',this.value)">`;
+    g.appendChild(d);
+  });
+}
+
+// ═══ ATTRS ═══
+function renderAttrs(){
+  const g=document.getElementById('agrid');if(!g)return;g.innerHTML='';
+  cur().attrs.forEach((a,i)=>{
+    const c=document.createElement('div');c.className='acard';
+    c.innerHTML=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+      <input class="aname" value="${esc(a.name)}" oninput="cur().attrs[${i}].name=this.value;renderSaves();renderRAttr();renderTalents();saveAll()" title="Renommer">
+      <button class="bti" onclick="delAttr(${i})">✕</button></div>
+      <div style="display:flex;align-items:center;gap:8px;justify-content:center;margin:8px 0">
+        <button class="bts" onclick="chAV(${i},-1)">−</button>
+        <input class="aval" type="number" value="${a.val}" min="1" max="30"
+          oninput="cur().attrs[${i}].val=parseInt(this.value)||10;document.getElementById('am${i}').textContent=ms(cur().attrs[${i}].val);renderSaves();saveAll()">
+        <button class="bts" onclick="chAV(${i},1)">+</button></div>
+      <div class="amod" id="am${i}">${ms(a.val)}</div>
+      <input class="adesc" value="${esc(a.desc)}" placeholder="Description…" oninput="cur().attrs[${i}].desc=this.value;saveAll()">`;
+    g.appendChild(c);
+  });
+  renderSaves();renderRAttr();
+}
+function chAV(i,d){const a=cur().attrs[i];a.val=Math.max(1,Math.min(30,a.val+d));renderAttrs();saveAll();}
+function delAttr(i){if(!confirm('Supprimer cet attribut ?'))return;cur().attrs.splice(i,1);renderAttrs();saveAll();}
+function addAttr(){cur().attrs.push({id:'a'+Date.now(),name:'Attribut',val:10,desc:''});renderAttrs();saveAll();}
+
+// ═══ SAVES ═══
+function renderSaves(){
+  const l=document.getElementById('savelist');if(!l)return;l.innerHTML='';
+  cur().attrs.forEach((a,i)=>{
+    const k='s'+a.id,p=cur().saveProf[k]||false,t=md(a.val)+(p?2:0);
+    const r=document.createElement('div');r.style.cssText='display:flex;align-items:center;gap:8px;font-size:13px';
+    r.innerHTML=`<input type="checkbox" ${p?'checked':''} onchange="cur().saveProf['${k}']=this.checked;renderSaves();saveAll()">
+      <span style="min-width:100px">${esc(a.name)}</span>
+      <span style="font-family:var(--font-t);font-size:16px;color:var(--accent);min-width:32px">${t>=0?'+':''}${t}</span>
+      <button class="bts" onclick="qSave(${i})">Jet</button>`;
+    l.appendChild(r);
+  });
+}
+function qSave(i){
+  const a=cur().attrs[i],k='s'+a.id,p=cur().saveProf[k]||false,t=md(a.val)+(p?2:0);
+  const d=Math.ceil(Math.random()*20);
+  alert(`Sauvegarde ${a.name}\nd20: ${d} ${t>=0?'+':''}${t} = ${d+t}`);
+}
+
+// ═══ HP ═══
+function updHP(){
+  const c=cur(),mx=parseInt(gv('hmax'))||10,cr=Math.max(0,parseInt(gv('hcur'))||0);
+  c.hp.max=mx;c.hp.cur=cr;
+  const pct=Math.min(100,Math.max(0,(cr/mx)*100));
+  const bar=document.getElementById('hpbar'),lbl=document.getElementById('hplbl');
+  if(bar){bar.style.width=pct+'%';bar.style.background=pct>50?'var(--green)':pct>25?'#a08020':'var(--red)';}
+  if(lbl)lbl.textContent=cr+' / '+mx;
+  saveAll();
+}
+function chHP(d){sv('hcur',Math.max(0,Math.min(parseInt(gv('hmax'))||10,(parseInt(gv('hcur'))||0)+d)));updHP();}
+
+// ═══ ROLL ═══
+function setAdv(m,ctx){
+  const pre=ctx==='a'?'a':'c';
+  if(ctx==='a')aMode=m;else cMode=m;
+  ['dis','nor','adv'].forEach(x=>{
+    const b=document.getElementById(pre+x);if(!b)return;
+    b.className='advbtn'+(m===x?(x==='dis'?' sdis':' son'):'');
+  });
+}
+function rd20(m){
+  const d1=Math.ceil(Math.random()*20);
+  if(m==='nor')return{die:d1,det:`d20: ${d1}`};
+  const d2=Math.ceil(Math.random()*20),k=m==='adv'?Math.max(d1,d2):Math.min(d1,d2);
+  return{die:k,det:`${m==='adv'?'Avantage':'Désavantage'}: ${d1}/${d2} → ${k}`};
+}
+function renderRAttr(){
+  ['rattr','cattr'].forEach(id=>{
+    const s=document.getElementById(id);if(!s)return;
+    const prev=s.value;
+    s.innerHTML=cur().attrs.map(a=>`<option value="${a.id}">${esc(a.name)} (${ms(a.val)})</option>`).join('');
+    if(prev)s.value=prev;
+  });
+}
+function rollAct(){
+  const c=cur(),a=c.attrs.find(x=>x.id===gv('rattr'))||c.attrs[0];
+  const bon=parseInt(gv('rbon'))||0,dc=parseInt(gv('rdc'))||13;
+  const{die,det}=rd20(aMode),tot=die+md(a.val)+bon;
+  const crit=die===20,fum=die===1,suc=tot>=dc;
+  let lab,cls;
+  if(fum){lab='Échec critique !';cls='rf';}else if(crit){lab='Succès critique !';cls='rc';}
+  else if(suc){lab='Succès';cls='rs';}else{lab='Échec';cls='rf';}
+  document.getElementById('rres').innerHTML=`<div class="rbig ${cls}">${tot}</div>
+    <div class="rlabel ${cls}">${lab}</div>
+    <div class="rdetail">${det} + mod ${esc(a.name)} (${ms(a.val)})${bon?` + ${bon}`:''} = ${tot} vs DD ${dc}</div>`;
+}
+
+// ═══ TALENTS ═══
+function renderTalents(){
+  const l=document.getElementById('tlist');if(!l)return;l.innerHTML='';
+  cur().talents.forEach((t,i)=>{
+    const ao=cur().attrs.map(a=>`<option value="${a.id}"${t.attr===a.id?' selected':''}>${esc(a.name)}</option>`).join('');
+    const r=document.createElement('div');r.className='trow';
+    r.innerHTML=`<input type="text" value="${esc(t.name)}" placeholder="Nom du talent" style="width:100%" oninput="cur().talents[${i}].name=this.value;saveAll()">
+      <select style="padding:5px 8px;font-size:12px" onchange="cur().talents[${i}].attr=this.value;saveAll()">${ao}</select>
+      <select style="padding:5px 8px;font-size:12px" onchange="cur().talents[${i}].mastery=+this.value;saveAll()">
+        ${[1,2,3,4,5].map(n=>`<option value="${n}"${t.mastery===n?' selected':''}>${['Novice +1','Apprenti +2','Compétent +3','Expert +4','Maître +5'][n-1]}</option>`).join('')}
+      </select>
+      <button class="btd" onclick="cur().talents.splice(${i},1);renderTalents();saveAll()">✕</button>`;
+    l.appendChild(r);
+  });
+}
+function addTalent(){cur().talents.push({name:'',attr:cur().attrs[0]?.id||'ph',mastery:1});renderTalents();saveAll();}
+
+// ═══ SPELLS ═══
+function renderSpells(){
+  const l=document.getElementById('splist');if(!l)return;l.innerHTML='';
+  cur().spells.forEach((s,i)=>{
+    const r=document.createElement('div');r.className='litem';r.style.gridTemplateColumns='1fr 70px 80px 80px auto';
+    r.innerHTML=`<input type="text" value="${esc(s.name)}" placeholder="Sort…" style="width:100%" oninput="cur().spells[${i}].name=this.value;saveAll()">
+      <input type="text" value="${esc(s.dd||'')}" placeholder="DD" oninput="cur().spells[${i}].dd=this.value;saveAll()">
+      <input type="text" value="${esc(s.range||'')}" placeholder="Contact" oninput="cur().spells[${i}].range=this.value;saveAll()">
+      <input type="text" value="${esc(s.dmg||'')}" placeholder="d6+2" oninput="cur().spells[${i}].dmg=this.value;saveAll()">
+      <button class="btd" onclick="cur().spells.splice(${i},1);renderSpells();saveAll()">✕</button>`;
+    l.appendChild(r);
+  });
+}
+function addSpell(){cur().spells.push({name:'',dd:'',range:'',dmg:''});renderSpells();saveAll();}
+
+// ═══ SKILLS ═══
+function renderSkills(){
+  const l=document.getElementById('sklist');if(!l)return;l.innerHTML='';
+  cur().skills.forEach((s,i)=>{
+    const ao=cur().attrs.map(a=>`<option value="${a.id}"${s.attr===a.id?' selected':''}>${esc(a.name)}</option>`).join('');
+    const r=document.createElement('div');r.className='litem';r.style.gridTemplateColumns='1fr 110px 1fr auto';
+    r.innerHTML=`<input type="text" value="${esc(s.name)}" placeholder="Compétence…" style="width:100%" oninput="cur().skills[${i}].name=this.value;saveAll()">
+      <select style="padding:5px 8px;font-size:12px" onchange="cur().skills[${i}].attr=this.value;saveAll()">${ao}</select>
+      <input type="text" value="${esc(s.notes||'')}" placeholder="Notes…" style="width:100%" oninput="cur().skills[${i}].notes=this.value;saveAll()">
+      <button class="btd" onclick="cur().skills.splice(${i},1);renderSkills();saveAll()">✕</button>`;
+    l.appendChild(r);
+  });
+}
+function addSkill(){cur().skills.push({name:'',attr:cur().attrs[0]?.id||'ph',notes:''});renderSkills();saveAll();}
+
+// ═══ BLOCS ═══
+function renderBlocs(){
+  const l=document.getElementById('blist');if(!l)return;l.innerHTML='';
+  const blocs=cur().blocs||[];
+  if(!blocs.length){l.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:24px">Aucun bloc. Choisissez un type ci-dessus.</div>';return;}
+  blocs.forEach((b,i)=>{
+    const def=BTYPES[b.type]||BTYPES.note;
+    const fh=def.flds.map((f,fi)=>`<div class="bfld"><label>${esc(f)}</label>${
+      f==='Notes'||f==='Contenu'
+        ?`<textarea oninput="cur().blocs[${i}].fields[${fi}]=this.value;saveAll()" placeholder="…">${esc(b.fields?.[fi]||'')}</textarea>`
+        :`<input type="text" value="${esc(b.fields?.[fi]||'')}" placeholder="…" oninput="cur().blocs[${i}].fields[${fi}]=this.value;saveAll()">`
+    }</div>`).join('');
+    const c=document.createElement('div');c.className='bcard';
+    c.innerHTML=`<div class="bhead">
+      <span class="bbadge" style="border-color:${def.col};color:${def.col}">${def.label}</span>
+      <input class="btitle" value="${esc(b.title||'')}" placeholder="Titre…" oninput="cur().blocs[${i}].title=this.value;saveAll()">
+      <button class="bts" onclick="mvBloc(${i},-1)">↑</button>
+      <button class="bts" onclick="mvBloc(${i},1)">↓</button>
+      <button class="btd" onclick="cur().blocs.splice(${i},1);renderBlocs();saveAll()">✕</button>
+    </div><div class="bbody">${fh}</div>`;
+    l.appendChild(c);
+  });
+}
+function addBloc(type){
+  const def=BTYPES[type]||BTYPES.note;
+  if(!cur().blocs)cur().blocs=[];
+  cur().blocs.unshift({type,title:'',fields:new Array(def.flds.length).fill('')});
+  renderBlocs();saveAll();
+  setTimeout(()=>{const t=document.querySelector('.btitle');if(t)t.focus();},50);
+}
+function mvBloc(i,d){const b=cur().blocs,j=i+d;if(j<0||j>=b.length)return;[b[i],b[j]]=[b[j],b[i]];renderBlocs();saveAll();}
+
+// ═══ COMBAT ═══
+function renderCombat(){
+  const l=document.getElementById('clist');if(!l)return;l.innerHTML='';
+  cur().combatants.forEach((c,i)=>{
+    const tc={hero:'th',ally:'ta',enemy:'te'}[c.type],tl={hero:'Héros',ally:'Allié',enemy:'Ennemi'}[c.type];
+    const pct=Math.max(0,Math.min(100,(c.hpCur/c.hpMax)*100));
+    const bc=pct>50?'var(--green)':pct>25?'#a08020':'var(--red)';
+    const cd=document.createElement('div');cd.className='ccrd';
+    cd.innerHTML=`<div class="chead">
+      <input class="cname" value="${esc(c.name)}" oninput="cur().combatants[${i}].name=this.value;saveAll()">
+      <span class="ctag ${tc}">${tl}</span>
+      <div class="fx" style="margin-left:auto;gap:6px">
+        <button class="bts" onclick="rollI1(${i})">Init</button>
+        <button class="btd" onclick="cur().combatants.splice(${i},1);renderCombat();renderIord();saveAll()">✕</button>
+      </div></div>
+      <div class="cstats">
+        <div class="smini"><label>Init</label><input type="number" value="${c.init||0}" oninput="cur().combatants[${i}].init=+this.value;renderIord();saveAll()"></div>
+        <div class="smini"><label>CA</label><input type="number" value="${c.ca||10}" oninput="cur().combatants[${i}].ca=+this.value;saveAll()"></div>
+        <div class="smini"><label>Physique</label><input type="number" value="${c.phys||10}" oninput="cur().combatants[${i}].phys=+this.value;saveAll()"></div>
+        <div class="smini"><label>Agilité</label><input type="number" value="${c.agi||10}" oninput="cur().combatants[${i}].agi=+this.value;saveAll()"></div>
+        <div class="smini"><label>PV <span style="font-size:9px;color:var(--text3)">${c.hpCur}/${c.hpMax}</span></label>
+          <div class="hped">
+            <button class="bts" onclick="chCHP(${i},-1)">−</button>
+            <input type="number" value="${c.hpCur}" min="0" oninput="cur().combatants[${i}].hpCur=+this.value;renderCombat();saveAll()">
+            <button class="bts" onclick="chCHP(${i},1)">+</button>
+            <span style="font-size:11px;color:var(--text3)">/</span>
+            <input type="number" value="${c.hpMax}" min="1" style="width:52px" oninput="cur().combatants[${i}].hpMax=+this.value;renderCombat();saveAll()">
+          </div></div>
+        <div class="smini"><label>Conditions</label><input type="text" value="${esc(c.conditions||'')}" placeholder="Empoisonné…" style="width:120px" oninput="cur().combatants[${i}].conditions=this.value;saveAll()"></div>
+      </div>
+      <div class="hpwrap" style="margin-top:10px;height:8px"><div class="hpbar" style="width:${pct}%;background:${bc}"></div></div>`;
+    l.appendChild(cd);
+  });
+}
+function addC(type){
+  const c=cur();
+  const ph=c.attrs.find(a=>a.name.toLowerCase().includes('physique'));
+  const ag=c.attrs.find(a=>a.name.toLowerCase().includes('agilit'));
+  const def=type==='hero'?{name:c.char.name||'Héros',ca:c.ca||10,hpCur:c.hp.cur||10,hpMax:c.hp.max||10,phys:ph?.val||10,agi:ag?.val||10}
+    :{name:'Inconnu',ca:10,hpCur:12,hpMax:12,phys:10,agi:10};
+  c.combatants.push({...def,type,init:0,conditions:''});renderCombat();saveAll();
+}
+function chCHP(i,d){const c=cur().combatants[i];c.hpCur=Math.max(0,Math.min(c.hpMax,c.hpCur+d));renderCombat();saveAll();}
+function rollI1(i){const c=cur().combatants[i];c.init=Math.ceil(Math.random()*20)+md(c.agi||10);renderCombat();renderIord();saveAll();}
+function rollInits(){cur().combatants.forEach((_,i)=>rollI1(i));}
+function renderIord(){
+  const box=document.getElementById('iord');if(!box)return;
+  const s=[...cur().combatants].sort((a,b)=>(b.init||0)-(a.init||0));
+  if(!s.length){box.style.display='none';return;}
+  box.style.display='block';
+  box.innerHTML=s.map(c=>`<div class="irow"><span class="inum">${c.init||0}</span>
+    <span style="color:${c.type==='enemy'?'var(--red)':c.type==='ally'?'var(--green)':'var(--accent)'}">${esc(c.name)}</span>
+    <span style="font-size:11px;color:var(--text3);margin-left:auto">${c.hpCur}/${c.hpMax} PV · CA ${c.ca}</span></div>`).join('');
+}
+function clearDead(){cur().combatants=cur().combatants.filter(c=>c.hpCur>0);renderCombat();renderIord();saveAll();}
+function clearCombat(){if(!confirm('Vider le combat ?'))return;cur().combatants=[];renderCombat();renderIord();saveAll();}
+function rollAtk(){
+  const c=cur(),a=c.attrs.find(x=>x.id===gv('cattr'))||c.attrs[0];
+  const bon=parseInt(gv('cbon'))||0,ca=parseInt(gv('cca2'))||10,dmg=gv('cdmg');
+  const{die,det}=rd20(cMode),atk=die+md(a?.val||10)+bon;
+  const hit=atk>=ca,crit=die===20,fum=die===1;
+  let ex='';
+  if(hit||crit){const d=rollD(dmg)+(crit?rollD(dmg):0);ex=` — ${d} dégâts${crit?' (CRIT×2)':''}`;}
+  const lab=fum?'Raté critique !':crit?`Touché critique !${ex}`:hit?`Touché${ex}`:'Manqué';
+  const cls=fum?'rf':crit?'rc':hit?'rs':'rf';
+  document.getElementById('cres').innerHTML=`<div class="rbig ${cls}">${atk}</div>
+    <div class="rlabel ${cls}">${lab}</div>
+    <div class="rdetail">${det} + mod ${esc(a?.name||'')} (${ms(a?.val||10)})${bon?` + ${bon}`:''} = ${atk} vs CA ${ca}</div>`;
+}
+function rollD(expr){const m=expr.match(/(\d+)d(\d+)/);if(!m)return 0;let t=0;for(let i=0;i<+m[1];i++)t+=Math.ceil(Math.random()*+m[2]);return t;}
+
+// ═══ JOURNAL ═══
+function renderJournal(filter=''){
+  const l=document.getElementById('jlist');if(!l)return;l.innerHTML='';
+  const all=cur().journal||[];
+  const ents=filter?all.filter(j=>(j.title+j.body).toLowerCase().includes(filter.toLowerCase())):all;
+  if(!ents.length){l.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:24px">Aucune entrée. Commencez à écrire !</div>';return;}
+  [...ents].reverse().forEach((en,ri)=>{
+    const i=all.length-1-ri;
+    const d=document.createElement('div');d.className='jcard';
+    d.innerHTML=`<div class="jhead">
+      <input class="jtitle" value="${esc(en.title)}" placeholder="Titre de la scène…" oninput="cur().journal[${i}].title=this.value;saveAll()">
+      <span style="font-size:11px;color:var(--text3);margin-right:8px">${en.date||''}</span>
+      <button class="btd" onclick="cur().journal.splice(${i},1);renderJournal();saveAll()">✕</button></div>
+      <textarea class="jbody" placeholder="Décrivez la scène…" oninput="cur().journal[${i}].body=this.value;saveAll()">${esc(en.body||'')}</textarea>`;
+    l.appendChild(d);
+  });
+}
+function addEntry(){
+  cur().journal.push({title:'',body:'',date:new Date().toLocaleDateString('fr-FR')});
+  renderJournal();saveAll();
+  setTimeout(()=>{const t=document.querySelector('.jtitle');if(t)t.focus();},50);
+}
+
+// ═══ ORACLE — tables d20 ═══
+function ensureOracle(){if(!cur().oracle)cur().oracle={tables:[],notes:[]};}
+
+function renderOTables(){
+  const l=document.getElementById('otlist');if(!l)return;
+  ensureOracle();
+  const tables=cur().oracle.tables||[];
+  if(!tables.length){
+    l.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:16px 0">Aucune table. Créez-en une avec le bouton ci-dessus.</div>';return;
+  }
+  l.innerHTML='';
+  tables.forEach((t,ti)=>{
+    const rows=(t.rows||[]).map((r,ri)=>`
+      <div class="otrow">
+        <div class="range-lbl">${r.from}${r.to!==r.from?'–'+r.to:''}</div>
+        <div style="display:flex;gap:4px;align-items:center">
+          <input type="number" class="otr-from" value="${r.from}" min="1" max="20"
+            oninput="cur().oracle.tables[${ti}].rows[${ri}].from=+this.value;saveAll()">
+          <span style="color:var(--text3);font-size:11px">–</span>
+          <input type="number" class="otr-to" value="${r.to}" min="1" max="20"
+            oninput="cur().oracle.tables[${ti}].rows[${ri}].to=+this.value;saveAll()">
+        </div>
+        <input type="text" value="${esc(r.text||'')}" placeholder="Résultat…"
+          oninput="cur().oracle.tables[${ti}].rows[${ri}].text=this.value;saveAll()">
+        <button class="btd" onclick="cur().oracle.tables[${ti}].rows.splice(${ri},1);renderOTables();saveAll()">✕</button>
+      </div>`).join('');
+
+    const card=document.createElement('div');card.className='otcard';
+    card.innerHTML=`<div class="othead">
+      <span style="font-family:var(--font-t);font-size:13px;color:var(--accent);white-space:nowrap">d20</span>
+      <input class="otname" value="${esc(t.name||'')}" placeholder="Nom de la table…"
+        oninput="cur().oracle.tables[${ti}].name=this.value;saveAll()">
+      <button class="bts" onclick="mvOT(${ti},-1)">↑</button>
+      <button class="bts" onclick="mvOT(${ti},1)">↓</button>
+      <button class="bta" onclick="rollOTable(${ti})" style="padding:5px 14px;font-size:12px">⚄ Lancer</button>
+      <button class="btd" onclick="cur().oracle.tables.splice(${ti},1);renderOTables();saveAll()">✕</button>
+    </div>
+    <div class="otbody">
+      <div style="display:grid;grid-template-columns:36px 80px 1fr auto;gap:6px;margin-bottom:8px">
+        <span style="font-size:10px;color:var(--text3);text-transform:uppercase">Affich.</span>
+        <span style="font-size:10px;color:var(--text3);text-transform:uppercase">Plage</span>
+        <span style="font-size:10px;color:var(--text3);text-transform:uppercase">Résultat</span>
+        <span></span>
+      </div>
+      ${rows}
+      <button class="bts" onclick="addOTRow(${ti})" style="margin-top:6px">+ Ligne</button>
+      <div class="ot-result" id="otr-${ti}" style="display:none"></div>
+    </div>`;
+    l.appendChild(card);
+  });
+}
+
+function addOTable(){
+  ensureOracle();
+  // Préremplir avec 4 lignes couvrant 1–20
+  cur().oracle.tables.unshift({name:'',rows:[
+    {from:1,to:5,text:''},{from:6,to:10,text:''},{from:11,to:15,text:''},{from:16,to:20,text:''}
+  ]});
+  renderOTables();saveAll();
+  setTimeout(()=>{const t=document.querySelector('.otname');if(t)t.focus();},50);
+}
+
+function addOTRow(ti){
+  ensureOracle();
+  const rows=cur().oracle.tables[ti].rows||[];
+  const lastTo=rows.length?rows[rows.length-1].to:0;
+  const from=Math.min(20,lastTo+1),to=Math.min(20,from+4);
+  cur().oracle.tables[ti].rows.push({from,to,text:''});
+  renderOTables();saveAll();
+}
+
+function mvOT(i,d){
+  const ts=cur().oracle.tables,j=i+d;
+  if(j<0||j>=ts.length)return;
+  [ts[i],ts[j]]=[ts[j],ts[i]];renderOTables();saveAll();
+}
+
+function rollOTable(ti){
+  ensureOracle();
+  const t=cur().oracle.tables[ti];
+  const die=Math.ceil(Math.random()*20);
+  const match=(t.rows||[]).find(r=>die>=r.from&&die<=r.to);
+  const res=document.getElementById('otr-'+ti);
+  if(!res)return;
+  res.style.display='block';
+  res.innerHTML=`<div class="ot-res-big">${die}</div>
+    <div class="ot-res-entry">${match?esc(match.text):'<span style="color:var(--text3)">Aucun résultat pour ce chiffre</span>'}</div>
+    <div class="ot-res-detail">d20 sur "${esc(t.name||'sans nom')}"${match?` · plage ${match.from}–${match.to}`:''}</div>`;
+}
+
+// ═══ ORACLE — notes ═══
+function renderONotes(){
+  const l=document.getElementById('onlist');if(!l)return;
+  ensureOracle();
+  const notes=cur().oracle.notes||[];
+  if(!notes.length){l.innerHTML='';return;}
+  l.innerHTML='';
+  notes.forEach((n,i)=>{
+    const d=document.createElement('div');d.className='oncard';
+    d.innerHTML=`<div class="onhead">
+      <span style="font-size:10px;color:var(--text3);border:1px solid var(--border2);padding:2px 8px;border-radius:999px;white-space:nowrap">Note</span>
+      <input class="ontitle" value="${esc(n.title||'')}" placeholder="Titre…" oninput="cur().oracle.notes[${i}].title=this.value;saveAll()">
+      <button class="bts" onclick="mvON(${i},-1)">↑</button>
+      <button class="bts" onclick="mvON(${i},1)">↓</button>
+      <button class="btd" onclick="cur().oracle.notes.splice(${i},1);renderONotes();saveAll()">✕</button>
+    </div>
+    <div class="onbody"><textarea placeholder="Contenu…" oninput="cur().oracle.notes[${i}].body=this.value;saveAll()">${esc(n.body||'')}</textarea></div>`;
+    l.appendChild(d);
+  });
+}
+function addONote(){
+  ensureOracle();
+  cur().oracle.notes.unshift({title:'',body:''});
+  renderONotes();saveAll();
+  setTimeout(()=>{const t=document.querySelector('.ontitle');if(t)t.focus();},50);
+}
+function mvON(i,d){
+  const ns=cur().oracle.notes,j=i+d;
+  if(j<0||j>=ns.length)return;
+  [ns[i],ns[j]]=[ns[j],ns[i]];renderONotes();saveAll();
+}
+
+// ═══ ORACLE principal ═══
+function rollOracle(){
+  const d1=Math.ceil(Math.random()*10),d2=Math.ceil(Math.random()*10),tot=d1+d2;
+  const th=parseInt(gv('oprob'))||12,df=tot-th;
+  let lab,col;
+  if(df>=4){lab='Oui, et…';col='var(--green)';}
+  else if(df>=1){lab='Oui';col='var(--green)';}
+  else if(df===0){lab='Oui, mais…';col='#a09030';}
+  else if(df>=-3){lab='Non, mais…';col='#a09030';}
+  else if(df>=-6){lab='Non';col='var(--red)';}
+  else{lab='Non, et…';col='var(--red)';}
+  const r=document.getElementById('ores');r.textContent=lab;r.style.color=col;
+  document.getElementById('odet').textContent=`${d1} + ${d2} = ${tot} / seuil ${th}`;
+}
+
+// ═══ CHAOS ═══
+function chChaos(d){
+  cur().chaos=Math.max(1,Math.min(9,(cur().chaos||5)+d));
+  document.getElementById('chval').textContent=cur().chaos;
+  document.getElementById('chlbl').textContent=CLBLS[cur().chaos]||'';
+  saveAll();
+}
+
+// ═══ RENDER ALL ═══
+function renderAll(){
+  const c=cur();
+  sv('cn',c.char.name||'');sv('cc',c.char.concept||'');sv('clv',c.char.level||1);
+  sv('cxp',c.char.xp||0);sv('cbg',c.char.bg||'');
+  sv('hmax',c.hp.max||10);sv('hcur',c.hp.cur||10);sv('cca',c.ca||10);sv('csp',c.speed||'30m');
+  updHP();renderAttrs();renderTalents();renderSpells();renderSkills();
+  renderBlocs();renderCombat();renderIord();renderJournal();
+  renderOTables();renderONotes();
+  document.getElementById('chval').textContent=c.chaos||5;
+  document.getElementById('chlbl').textContent=CLBLS[c.chaos||5]||'';
+}
+
+// ═══ BOOT ═══
+loadAll();renderBar();renderAll();applyTheme();
+</script>
+</body>
+</html>
