@@ -769,74 +769,74 @@ function mvBloc(i,d){const b=cur().blocs,j=i+d;if(j<0||j>=b.length)return;[b[i],
 function renderEquip(){
   const l=document.getElementById('equiplist');if(!l)return;l.innerHTML='';
   const items=cur().equipment||[];
-  if(!items.length){
-    l.innerHTML='<div style="color:var(--text3);font-size:12px;padding:6px 0">Aucun équipement.</div>';return;
-  }
+  if(!items.length){l.innerHTML='<div style="color:var(--text3);font-size:12px;padding:6px 0">Aucun équipement.</div>';return;}
   items.forEach((it,i)=>{
-    const row=document.createElement('div');
-    row.style.cssText='display:grid;grid-template-columns:1fr 90px 70px 70px auto;gap:8px;align-items:center;margin-bottom:6px';
-    row.innerHTML=`
-      <input type="text" value="${esc(it.name||'')}" placeholder="Nom…"
-        oninput="cur().equipment[${i}].name=this.value;saveAll()">
-      <input type="text" value="${esc(it.type||'')}" placeholder="Type…"
-        oninput="cur().equipment[${i}].type=this.value;saveAll()">
-      <input type="text" value="${esc(it.bonus||'')}" placeholder="Bonus…"
-        oninput="cur().equipment[${i}].bonus=this.value;saveAll()">
-      <input type="text" value="${esc(it.notes||'')}" placeholder="Notes…"
-        oninput="cur().equipment[${i}].notes=this.value;saveAll()">
-      <button class="btd" onclick="cur().equipment.splice(${i},1);renderEquip();saveAll()">✕</button>`;
-    l.appendChild(row);
+    const card=document.createElement('div');
+    card.className='bcard';card.style.marginBottom='8px';
+    card.innerHTML=`
+      <div class="bhead">
+        <input style="background:none;border:none;color:var(--text);font-family:var(--font-t);font-size:15px;flex:1;outline:none"
+          value="${esc(it.name||'')}" placeholder="Nom de l'équipement…"
+          oninput="cur().equipment[${i}].name=this.value;saveAll()">
+        <button class="btd" onclick="cur().equipment.splice(${i},1);renderEquip();saveAll()">✕</button>
+      </div>
+      <div class="bbody">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+          <div class="fld"><label>Type</label>
+            <input type="text" value="${esc(it.type||'')}" placeholder="Arme, armure…" style="width:110px"
+              oninput="cur().equipment[${i}].type=this.value;saveAll()"></div>
+          <div class="fld"><label>Bonus / Dégâts</label>
+            <input type="text" value="${esc(it.bonus||'')}" placeholder="+2, d8+1…" style="width:90px"
+              oninput="cur().equipment[${i}].bonus=this.value;saveAll()"></div>
+          <div class="fld"><label>Portée / Propriété</label>
+            <input type="text" value="${esc(it.prop||'')}" placeholder="Contact, 30m…" style="width:110px"
+              oninput="cur().equipment[${i}].prop=this.value;saveAll()"></div>
+        </div>
+        <div class="bfld"><label>Détails</label>
+          <textarea placeholder="Description, effets spéciaux, conditions d'utilisation…" style="min-height:60px"
+            oninput="cur().equipment[${i}].details=this.value;saveAll()">${esc(it.details||'')}</textarea>
+        </div>
+      </div>`;
+    l.appendChild(card);
   });
-  // En-tête si au moins un item
-  if(items.length){
-    const hdr=document.createElement('div');
-    hdr.style.cssText='display:grid;grid-template-columns:1fr 90px 70px 70px auto;gap:8px;margin-bottom:4px';
-    hdr.innerHTML=`<span style="font-size:10px;color:var(--text3);text-transform:uppercase">Nom</span>
-      <span style="font-size:10px;color:var(--text3);text-transform:uppercase">Type</span>
-      <span style="font-size:10px;color:var(--text3);text-transform:uppercase">Bonus</span>
-      <span style="font-size:10px;color:var(--text3);text-transform:uppercase">Notes</span>
-      <span></span>`;
-    l.insertBefore(hdr,l.firstChild);
-  }
 }
 function addEquip(){
   if(!cur().equipment)cur().equipment=[];
-  cur().equipment.push({name:'',type:'',bonus:'',notes:''});
+  cur().equipment.push({name:'',type:'',bonus:'',prop:'',details:''});
   renderEquip();saveAll();
 }
 
 function renderInv(){
   const l=document.getElementById('invlist');if(!l)return;l.innerHTML='';
   const items=cur().inventory||[];
-  if(!items.length){
-    l.innerHTML='<div style="color:var(--text3);font-size:12px;padding:6px 0">Inventaire vide.</div>';return;
-  }
+  if(!items.length){l.innerHTML='<div style="color:var(--text3);font-size:12px;padding:6px 0">Inventaire vide.</div>';return;}
   items.forEach((it,i)=>{
-    const row=document.createElement('div');
-    row.style.cssText='display:grid;grid-template-columns:1fr 60px 1fr auto;gap:8px;align-items:center;margin-bottom:6px';
-    row.innerHTML=`
-      <input type="text" value="${esc(it.name||'')}" placeholder="Nom…"
-        oninput="cur().inventory[${i}].name=this.value;saveAll()">
-      <input type="text" value="${esc(it.qty||'')}" placeholder="Qté"
-        oninput="cur().inventory[${i}].qty=this.value;saveAll()">
-      <input type="text" value="${esc(it.notes||'')}" placeholder="Description / notes…"
-        oninput="cur().inventory[${i}].notes=this.value;saveAll()">
-      <button class="btd" onclick="cur().inventory.splice(${i},1);renderInv();saveAll()">✕</button>`;
-    l.appendChild(row);
+    const card=document.createElement('div');
+    card.className='bcard';card.style.marginBottom='8px';
+    card.innerHTML=`
+      <div class="bhead">
+        <input style="background:none;border:none;color:var(--text);font-family:var(--font-t);font-size:15px;flex:1;outline:none"
+          value="${esc(it.name||'')}" placeholder="Nom de l'objet…"
+          oninput="cur().inventory[${i}].name=this.value;saveAll()">
+        <div class="fld" style="flex-direction:row;align-items:center;gap:6px;margin:0">
+          <label style="margin:0;white-space:nowrap">Qté</label>
+          <input type="text" value="${esc(it.qty||'1')}" style="width:52px;font-size:13px"
+            oninput="cur().inventory[${i}].qty=this.value;saveAll()">
+        </div>
+        <button class="btd" onclick="cur().inventory.splice(${i},1);renderInv();saveAll()" style="margin-left:8px">✕</button>
+      </div>
+      <div class="bbody">
+        <div class="bfld"><label>Détails</label>
+          <textarea placeholder="Description, propriétés, notes d'utilisation…" style="min-height:60px"
+            oninput="cur().inventory[${i}].details=this.value;saveAll()">${esc(it.details||'')}</textarea>
+        </div>
+      </div>`;
+    l.appendChild(card);
   });
-  if(items.length){
-    const hdr=document.createElement('div');
-    hdr.style.cssText='display:grid;grid-template-columns:1fr 60px 1fr auto;gap:8px;margin-bottom:4px';
-    hdr.innerHTML=`<span style="font-size:10px;color:var(--text3);text-transform:uppercase">Objet</span>
-      <span style="font-size:10px;color:var(--text3);text-transform:uppercase">Qté</span>
-      <span style="font-size:10px;color:var(--text3);text-transform:uppercase">Notes</span>
-      <span></span>`;
-    l.insertBefore(hdr,l.firstChild);
-  }
 }
 function addInvItem(){
   if(!cur().inventory)cur().inventory=[];
-  cur().inventory.push({name:'',qty:'1',notes:''});
+  cur().inventory.push({name:'',qty:'1',details:''});
   renderInv();saveAll();
 }
 
