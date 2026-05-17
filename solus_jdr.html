@@ -165,8 +165,6 @@ hr.sep{border:none;border-top:1px solid var(--border);margin:16px 0}
 
 <nav>
   <button class="nav-btn active" data-tab="perso" onclick="showTab('perso',this)">Personnage</button>
-  <button class="nav-btn" data-tab="blocs" onclick="showTab('blocs',this)">Blocs</button>
-  <button class="nav-btn" data-tab="talents" onclick="showTab('talents',this)">Talents</button>
   <button class="nav-btn" data-tab="sorts" onclick="showTab('sorts',this)">Sorts & Compétences</button>
   <button class="nav-btn" data-tab="combat" onclick="showTab('combat',this)">Combat</button>
   <button class="nav-btn" data-tab="journal" onclick="showTab('journal',this)">Journal</button>
@@ -221,60 +219,22 @@ hr.sep{border:none;border-top:1px solid var(--border);margin:16px 0}
   </div>
 </div>
 
-<!-- BLOCS -->
-<div class="tab" id="tab-blocs">
-  <div class="stitle">Blocs de texte</div>
-  <div style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.65">Créez des blocs structurés pour organiser les informations de votre aventure.</div>
-  <div class="tchooser">
-    <button class="tbtn" onclick="addBloc('pnj')">+ PNJ</button>
-    <button class="tbtn" onclick="addBloc('lieu')">+ Lieu</button>
-    <button class="tbtn" onclick="addBloc('objet')">+ Objet</button>
-    <button class="tbtn" onclick="addBloc('quete')">+ Quête</button>
-    <button class="tbtn" onclick="addBloc('faction')">+ Faction</button>
-    <button class="tbtn" onclick="addBloc('rumeur')">+ Rumeur / Indice</button>
-    <button class="tbtn" onclick="addBloc('note')">+ Note libre</button>
-  </div>
-  <div id="blist"></div>
-</div>
-
-<!-- TALENTS -->
-<div class="tab" id="tab-talents">
-  <div class="stitle">Talents & Maîtrises</div>
-  <div style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.65">Un talent applicable ajoute son bonus au jet.<br><strong style="color:var(--accent)">Novice +1 · Apprenti +2 · Compétent +3 · Expert +4 · Maître +5</strong></div>
-  <div class="card">
-    <div style="display:grid;grid-template-columns:1fr 110px 130px auto;gap:8px;margin-bottom:8px">
-      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Talent</span>
-      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Attribut</span>
-      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Maîtrise</span><span></span>
-    </div>
-    <div id="tlist"></div>
-    <button class="btn" onclick="addTalent()" style="margin-top:8px">+ Ajouter un talent</button>
-  </div>
-</div>
-
 <!-- SORTS -->
 <div class="tab" id="tab-sorts">
   <div class="stitle">Sorts & Compétences</div>
-  <div class="sub">Sorts <button class="bts" onclick="addSpell()" style="margin-left:8px">+ Ajouter</button></div>
-  <div class="card">
-    <div style="display:grid;grid-template-columns:1fr 70px 80px 80px auto;gap:8px;margin-bottom:8px">
-      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Nom</span>
-      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">DD</span>
-      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Portée</span>
-      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Dégâts</span><span></span>
-    </div>
-    <div id="splist"></div>
-    <div style="font-size:12px;color:var(--text3);margin-top:10px">DD = d20 + attribut lanceur vs CA cible (10 + mod Physique ou Agilité cible)</div>
+  <div style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.65">
+    Sorts, compétences et talents au même endroit. Le type choisi détermine les champs affichés.
   </div>
-  <div class="sub">Compétences <button class="bts" onclick="addSkill()" style="margin-left:8px">+ Ajouter</button></div>
-  <div class="card">
-    <div style="display:grid;grid-template-columns:1fr 110px 1fr auto;gap:8px;margin-bottom:8px">
-      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Compétence</span>
-      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Attribut</span>
-      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Notes</span><span></span>
-    </div>
-    <div id="sklist"></div>
+  <div class="fx" style="margin-bottom:4px">
+    <button class="bta" onclick="addAbility()">+ Ajouter</button>
   </div>
+  <div class="sub">Sorts</div>
+  <div id="splist"></div>
+  <div style="font-size:12px;color:var(--text3);margin-bottom:16px;margin-top:4px">DD = d20 + attribut lanceur vs CA cible (10 + mod Physique ou Agilité)</div>
+  <div class="sub">Compétences</div>
+  <div id="sklist"></div>
+  <div class="sub">Talents</div>
+  <div id="talist"></div>
 </div>
 
 <!-- COMBAT -->
@@ -313,10 +273,17 @@ hr.sep{border:none;border-top:1px solid var(--border);margin:16px 0}
 
 <!-- JOURNAL -->
 <div class="tab" id="tab-journal">
-  <div class="stitle">Journal d'aventure</div>
-  <div class="fx" style="margin-bottom:16px">
-    <button class="bta" onclick="addEntry()">+ Nouvelle entrée</button>
-    <input type="text" id="jsearch" placeholder="Rechercher…" oninput="renderJournal(this.value)" style="flex:1">
+  <div class="stitle">Journal & Blocs</div>
+  <div class="fx" style="margin-bottom:16px;gap:8px;flex-wrap:wrap">
+    <button class="bta" onclick="addEntry()">+ Entrée de journal</button>
+    <button class="btn" onclick="addBloc('pnj')">+ PNJ</button>
+    <button class="btn" onclick="addBloc('lieu')">+ Lieu</button>
+    <button class="btn" onclick="addBloc('objet')">+ Objet</button>
+    <button class="btn" onclick="addBloc('quete')">+ Quête</button>
+    <button class="btn" onclick="addBloc('faction')">+ Faction</button>
+    <button class="btn" onclick="addBloc('rumeur')">+ Rumeur</button>
+    <button class="btn" onclick="addBloc('note')">+ Note</button>
+    <input type="text" id="jsearch" placeholder="Rechercher…" oninput="renderJournal(this.value)" style="flex:1;min-width:140px">
   </div>
   <div id="jlist"></div>
 </div>
@@ -516,7 +483,7 @@ function blank(name='Nouveau personnage'){
     char:{name,concept:'',level:1,xp:0,bg:''},
     attrs:JSON.parse(JSON.stringify(DATTRS)),
     hp:{cur:10,max:10},ca:10,speed:'30m',saveProf:{},
-    talents:[],spells:[],skills:[],combatants:[],journal:[],blocs:[],
+    talents:[],spells:[],skills:[],abilities:[],combatants:[],journal:[],blocs:[],
     oracle:{tables:[],notes:[],od20:JSON.parse(JSON.stringify(DEFAULT_OD20))},
     chaos:5,theme:{}};
 }
@@ -689,33 +656,81 @@ function renderTalents(){
 }
 function addTalent(){cur().talents.push({name:'',attr:cur().attrs[0]?.id||'ph',mastery:1});renderTalents();saveAll();}
 
-// SPELLS / SKILLS
-function renderSpells(){
-  const l=document.getElementById('splist');if(!l)return;l.innerHTML='';
-  cur().spells.forEach((s,i)=>{
-    const r=document.createElement('div');r.className='litem';r.style.gridTemplateColumns='1fr 70px 80px 80px auto';
-    r.innerHTML=`<input type="text" value="${esc(s.name)}" placeholder="Sort…" style="width:100%" oninput="cur().spells[${i}].name=this.value;saveAll()">
-      <input type="text" value="${esc(s.dd||'')}" placeholder="DD" oninput="cur().spells[${i}].dd=this.value;saveAll()">
-      <input type="text" value="${esc(s.range||'')}" placeholder="Contact" oninput="cur().spells[${i}].range=this.value;saveAll()">
-      <input type="text" value="${esc(s.dmg||'')}" placeholder="d6+2" oninput="cur().spells[${i}].dmg=this.value;saveAll()">
-      <button class="btd" onclick="cur().spells.splice(${i},1);renderSpells();saveAll()">✕</button>`;
-    l.appendChild(r);
+// SORTS / COMPÉTENCES / TALENTS — liste unifiée
+const ABIL_TYPES=['sort','compétence','talent'];
+const TYPE_COLORS={sort:'#8060a0',compétence:'#4a7aaa',talent:'#c8a96e'};
+
+function renderAbilities(){
+  const all=cur().abilities||[];
+  // sorts
+  const spEl=document.getElementById('splist');
+  const skEl=document.getElementById('sklist');
+  const taEl=document.getElementById('talist');
+  if(!spEl||!skEl||!taEl)return;
+  spEl.innerHTML=''; skEl.innerHTML=''; taEl.innerHTML='';
+  const spells=all.filter(a=>a.type==='sort');
+  const skills=all.filter(a=>a.type==='compétence');
+  const talents=all.filter(a=>a.type==='talent');
+  if(!spells.length) spEl.innerHTML='<div style="color:var(--text3);font-size:12px;padding:8px 0">Aucun sort. Cliquez sur + Ajouter ci-dessus.</div>';
+  if(!skills.length) skEl.innerHTML='<div style="color:var(--text3);font-size:12px;padding:8px 0">Aucune compétence.</div>';
+  if(!talents.length) taEl.innerHTML='<div style="color:var(--text3);font-size:12px;padding:8px 0">Aucun talent.</div>';
+  all.forEach((a,i)=>{
+    const el={sort:spEl,compétence:skEl,talent:taEl}[a.type]||skEl;
+    const attrOpts=cur().attrs.map(at=>`<option value="${at.id}"${a.attr===at.id?' selected':''}>${esc(at.name)}</option>`).join('');
+    const mastOpts=[1,2,3,4,5].map(n=>`<option value="${n}"${(a.mastery||1)===n?' selected':''}>${['Novice +1','Apprenti +2','Compétent +3','Expert +4','Maître +5'][n-1]}</option>`).join('');
+    const col=TYPE_COLORS[a.type]||'#888';
+    const card=document.createElement('div');
+    card.className='bcard';
+    card.style.marginBottom='8px';
+    card.innerHTML=`
+      <div class="bhead">
+        <select style="padding:3px 8px;font-size:11px;border-radius:999px;border:1px solid ${col};color:${col};background:var(--bg3);font-family:var(--font-ui)"
+          onchange="cur().abilities[${i}].type=this.value;renderAbilities();saveAll()">
+          ${ABIL_TYPES.map(t=>`<option value="${t}"${a.type===t?' selected':''}>${t.charAt(0).toUpperCase()+t.slice(1)}</option>`).join('')}
+        </select>
+        <input style="background:none;border:none;color:var(--text);font-family:var(--font-t);font-size:15px;flex:1;outline:none;padding:0 6px"
+          value="${esc(a.name)}" placeholder="Nom…"
+          oninput="cur().abilities[${i}].name=this.value;saveAll()">
+        <button class="btd" onclick="cur().abilities.splice(${i},1);renderAbilities();saveAll()">✕</button>
+      </div>
+      <div class="bbody">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+          <div class="fld"><label>Attribut lié</label>
+            <select style="padding:5px 8px;font-size:12px" onchange="cur().abilities[${i}].attr=this.value;saveAll()">${attrOpts}</select></div>
+          ${a.type==='sort'?`
+          <div class="fld"><label>DD</label>
+            <input type="text" value="${esc(a.dd||'')}" placeholder="13" style="width:64px"
+              oninput="cur().abilities[${i}].dd=this.value;saveAll()"></div>
+          <div class="fld"><label>Portée</label>
+            <input type="text" value="${esc(a.range||'')}" placeholder="Contact" style="width:90px"
+              oninput="cur().abilities[${i}].range=this.value;saveAll()"></div>
+          <div class="fld"><label>Dégâts</label>
+            <input type="text" value="${esc(a.dmg||'')}" placeholder="d6+2" style="width:80px"
+              oninput="cur().abilities[${i}].dmg=this.value;saveAll()"></div>`:''}
+          ${a.type==='talent'?`
+          <div class="fld"><label>Maîtrise</label>
+            <select style="padding:5px 8px;font-size:12px" onchange="cur().abilities[${i}].mastery=+this.value;saveAll()">${mastOpts}</select></div>`:''}
+        </div>
+        <div class="bfld"><label>Description / Comment ça fonctionne</label>
+          <textarea placeholder="Décrivez l'effet, les conditions d'utilisation, les limites…"
+            oninput="cur().abilities[${i}].notes=this.value;saveAll()">${esc(a.notes||'')}</textarea>
+        </div>
+      </div>`;
+    el.appendChild(card);
   });
 }
-function addSpell(){cur().spells.push({name:'',dd:'',range:'',dmg:''});renderSpells();saveAll();}
-function renderSkills(){
-  const l=document.getElementById('sklist');if(!l)return;l.innerHTML='';
-  cur().skills.forEach((s,i)=>{
-    const ao=cur().attrs.map(a=>`<option value="${a.id}"${s.attr===a.id?' selected':''}>${esc(a.name)}</option>`).join('');
-    const r=document.createElement('div');r.className='litem';r.style.gridTemplateColumns='1fr 110px 1fr auto';
-    r.innerHTML=`<input type="text" value="${esc(s.name)}" placeholder="Compétence…" style="width:100%" oninput="cur().skills[${i}].name=this.value;saveAll()">
-      <select style="padding:5px 8px;font-size:12px" onchange="cur().skills[${i}].attr=this.value;saveAll()">${ao}</select>
-      <input type="text" value="${esc(s.notes||'')}" placeholder="Notes…" style="width:100%" oninput="cur().skills[${i}].notes=this.value;saveAll()">
-      <button class="btd" onclick="cur().skills.splice(${i},1);renderSkills();saveAll()">✕</button>`;
-    l.appendChild(r);
-  });
+
+function addAbility(){
+  if(!cur().abilities)cur().abilities=[];
+  cur().abilities.push({type:'sort',name:'',attr:cur().attrs[0]?.id||'ph',dd:'',range:'',dmg:'',mastery:1,notes:''});
+  renderAbilities();saveAll();
 }
-function addSkill(){cur().skills.push({name:'',attr:cur().attrs[0]?.id||'ph',notes:''});renderSkills();saveAll();}
+
+// Garder les stubs pour compatibilité (ne sont plus appelés depuis le HTML)
+function renderSpells(){}
+function addSpell(){}
+function renderSkills(){}
+function addSkill(){}
 
 // BLOCS
 function renderBlocs(){
@@ -802,23 +817,82 @@ function rollAtk(){
 }
 function rollD(expr){const m=expr.match(/(\d+)d(\d+)/);if(!m)return 0;let t=0;for(let i=0;i<+m[1];i++)t+=Math.ceil(Math.random()*+m[2]);return t;}
 
-// JOURNAL
+// JOURNAL + BLOCS fusionnés
 function renderJournal(filter=''){
   const l=document.getElementById('jlist');if(!l)return;l.innerHTML='';
-  const all=cur().journal||[];
-  const ents=filter?all.filter(j=>(j.title+j.body).toLowerCase().includes(filter.toLowerCase())):all;
-  if(!ents.length){l.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:24px">Aucune entrée.</div>';return;}
-  [...ents].reverse().forEach((en,ri)=>{
-    const i=all.length-1-ri;
-    const d=document.createElement('div');d.className='jcard';
-    d.innerHTML=`<div class="jhead"><input class="jtitle" value="${esc(en.title)}" placeholder="Titre de la scène…" oninput="cur().journal[${i}].title=this.value;saveAll()">
-      <span style="font-size:11px;color:var(--text3);margin-right:8px">${en.date||''}</span>
-      <button class="btd" onclick="cur().journal.splice(${i},1);renderJournal();saveAll()">✕</button></div>
+  const c=cur();
+  const entries=c.journal||[];
+  const blocs=c.blocs||[];
+
+  // Construire une liste unifiée avec type pour le rendu
+  const allItems=[
+    ...entries.map((e,i)=>({kind:'entry',data:e,idx:i})),
+    ...blocs.map((b,i)=>({kind:'bloc',data:b,idx:i})),
+  ];
+
+  const filtered=filter
+    ? allItems.filter(item=>{
+        const d=item.data;
+        const txt=item.kind==='entry'
+          ?(d.title+d.body).toLowerCase()
+          :(d.title+(d.fields||[]).join(' ')).toLowerCase();
+        return txt.includes(filter.toLowerCase());
+      })
+    : allItems;
+
+  if(!filtered.length){
+    l.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:24px">Aucun contenu. Ajoutez une entrée ou un bloc.</div>';
+    return;
+  }
+
+  // Afficher dans l'ordre inverse (plus récent en haut)
+  [...filtered].reverse().forEach(item=>{
+    if(item.kind==='entry'){
+      const en=item.data, i=item.idx;
+      const d=document.createElement('div');d.className='jcard';
+      d.innerHTML=`<div class="jhead">
+        <span style="font-size:10px;padding:2px 8px;border-radius:999px;border:1px solid var(--border2);color:var(--text3);margin-right:8px;white-space:nowrap">Journal</span>
+        <input class="jtitle" value="${esc(en.title)}" placeholder="Titre de la scène…" oninput="cur().journal[${i}].title=this.value;saveAll()">
+        <span style="font-size:11px;color:var(--text3);margin-right:8px">${en.date||''}</span>
+        <button class="bts" onclick="mvJournalEntry(${i},-1)" title="Monter">↑</button>
+        <button class="bts" onclick="mvJournalEntry(${i},1)" title="Descendre">↓</button>
+        <button class="btd" onclick="cur().journal.splice(${i},1);renderJournal();saveAll()">✕</button>
+      </div>
       <textarea class="jbody" placeholder="Décrivez la scène…" oninput="cur().journal[${i}].body=this.value;saveAll()">${esc(en.body||'')}</textarea>`;
-    l.appendChild(d);
+      l.appendChild(d);
+    } else {
+      const b=item.data, i=item.idx;
+      const def=BTYPES[b.type]||BTYPES.note;
+      const fh=def.flds.map((f,fi)=>`<div class="bfld"><label>${esc(f)}</label>${
+        f==='Notes'||f==='Contenu'
+          ?`<textarea oninput="cur().blocs[${i}].fields[${fi}]=this.value;saveAll()" placeholder="…">${esc(b.fields?.[fi]||'')}</textarea>`
+          :`<input type="text" value="${esc(b.fields?.[fi]||'')}" placeholder="…" oninput="cur().blocs[${i}].fields[${fi}]=this.value;saveAll()">`
+      }</div>`).join('');
+      const cd=document.createElement('div');cd.className='bcard';
+      cd.innerHTML=`<div class="bhead">
+        <span class="bbadge" style="border-color:${def.col};color:${def.col}">${def.label}</span>
+        <input class="btitle" value="${esc(b.title||'')}" placeholder="Titre…" oninput="cur().blocs[${i}].title=this.value;saveAll()">
+        <button class="bts" onclick="mvBloc(${i},-1)">↑</button>
+        <button class="bts" onclick="mvBloc(${i},1)">↓</button>
+        <button class="btd" onclick="cur().blocs.splice(${i},1);renderJournal();saveAll()">✕</button>
+      </div><div class="bbody">${fh}</div>`;
+      l.appendChild(cd);
+    }
   });
 }
-function addEntry(){cur().journal.push({title:'',body:'',date:new Date().toLocaleDateString('fr-FR')});renderJournal();saveAll();setTimeout(()=>{const t=document.querySelector('.jtitle');if(t)t.focus();},50);}
+
+function addEntry(){
+  if(!cur().journal)cur().journal=[];
+  cur().journal.push({title:'',body:'',date:new Date().toLocaleDateString('fr-FR')});
+  renderJournal();saveAll();
+  setTimeout(()=>{const t=document.querySelector('.jtitle');if(t)t.focus();},50);
+}
+
+function mvJournalEntry(i,d){
+  const j=cur().journal,k=i+d;
+  if(k<0||k>=j.length)return;
+  [j[i],j[k]]=[j[k],j[i]];renderJournal();saveAll();
+}
 
 // ORACLE 2d10
 function rollOracle(){
@@ -1028,8 +1102,8 @@ function renderAll(){
   sv('cn',c.char.name||'');sv('cc',c.char.concept||'');sv('clv',c.char.level||1);
   sv('cxp',c.char.xp||0);sv('cbg',c.char.bg||'');
   sv('hmax',c.hp.max||10);sv('hcur',c.hp.cur||10);sv('cca',c.ca||10);sv('csp',c.speed||'30m');
-  updHP();renderAttrs();renderTalents();renderSpells();renderSkills();
-  renderBlocs();renderCombat();renderIord();renderJournal();
+  updHP();renderAttrs();renderAbilities();
+  renderCombat();renderIord();renderJournal();
   renderOD20();renderOTables();renderONotes();
   document.getElementById('chval').textContent=c.chaos||5;
   document.getElementById('chlbl').textContent=CLBLS[c.chaos||5]||'';
