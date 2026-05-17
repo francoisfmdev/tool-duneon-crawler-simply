@@ -217,6 +217,18 @@ hr.sep{border:none;border-top:1px solid var(--border);margin:16px 0}
     </div>
     <div class="rbox" id="rres"><div class="rlabel" style="color:var(--text3)">Configurez et lancez…</div></div>
   </div>
+
+  <div class="sub">Équipement <button class="bts" onclick="addEquip()" style="margin-left:8px">+ Ajouter</button></div>
+  <div class="card" style="padding:12px">
+    <div id="equiplist"></div>
+    <div style="font-size:11px;color:var(--text3);margin-top:6px">Armes, armures, accessoires portés — personnalisez les colonnes librement.</div>
+  </div>
+
+  <div class="sub">Inventaire <button class="bts" onclick="addInvItem()" style="margin-left:8px">+ Ajouter</button></div>
+  <div class="card" style="padding:12px">
+    <div id="invlist"></div>
+    <div style="font-size:11px;color:var(--text3);margin-top:6px">Objets, ressources, monnaie — tout ce que vous portez.</div>
+  </div>
 </div>
 
 <!-- SORTS -->
@@ -484,6 +496,7 @@ function blank(name='Nouveau personnage'){
     attrs:JSON.parse(JSON.stringify(DATTRS)),
     hp:{cur:10,max:10},ca:10,speed:'30m',saveProf:{},
     talents:[],spells:[],skills:[],abilities:[],combatants:[],journal:[],blocs:[],
+    inventory:[],equipment:[],
     oracle:{tables:[],notes:[],od20:JSON.parse(JSON.stringify(DEFAULT_OD20))},
     chaos:5,theme:{}};
 }
@@ -751,6 +764,81 @@ function renderBlocs(){
 }
 function addBloc(type){const def=BTYPES[type]||BTYPES.note;if(!cur().blocs)cur().blocs=[];cur().blocs.unshift({type,title:'',fields:new Array(def.flds.length).fill('')});renderBlocs();saveAll();setTimeout(()=>{const t=document.querySelector('.btitle');if(t)t.focus();},50);}
 function mvBloc(i,d){const b=cur().blocs,j=i+d;if(j<0||j>=b.length)return;[b[i],b[j]]=[b[j],b[i]];renderBlocs();saveAll();}
+
+// ÉQUIPEMENT & INVENTAIRE
+function renderEquip(){
+  const l=document.getElementById('equiplist');if(!l)return;l.innerHTML='';
+  const items=cur().equipment||[];
+  if(!items.length){
+    l.innerHTML='<div style="color:var(--text3);font-size:12px;padding:6px 0">Aucun équipement.</div>';return;
+  }
+  items.forEach((it,i)=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:grid;grid-template-columns:1fr 90px 70px 70px auto;gap:8px;align-items:center;margin-bottom:6px';
+    row.innerHTML=`
+      <input type="text" value="${esc(it.name||'')}" placeholder="Nom…"
+        oninput="cur().equipment[${i}].name=this.value;saveAll()">
+      <input type="text" value="${esc(it.type||'')}" placeholder="Type…"
+        oninput="cur().equipment[${i}].type=this.value;saveAll()">
+      <input type="text" value="${esc(it.bonus||'')}" placeholder="Bonus…"
+        oninput="cur().equipment[${i}].bonus=this.value;saveAll()">
+      <input type="text" value="${esc(it.notes||'')}" placeholder="Notes…"
+        oninput="cur().equipment[${i}].notes=this.value;saveAll()">
+      <button class="btd" onclick="cur().equipment.splice(${i},1);renderEquip();saveAll()">✕</button>`;
+    l.appendChild(row);
+  });
+  // En-tête si au moins un item
+  if(items.length){
+    const hdr=document.createElement('div');
+    hdr.style.cssText='display:grid;grid-template-columns:1fr 90px 70px 70px auto;gap:8px;margin-bottom:4px';
+    hdr.innerHTML=`<span style="font-size:10px;color:var(--text3);text-transform:uppercase">Nom</span>
+      <span style="font-size:10px;color:var(--text3);text-transform:uppercase">Type</span>
+      <span style="font-size:10px;color:var(--text3);text-transform:uppercase">Bonus</span>
+      <span style="font-size:10px;color:var(--text3);text-transform:uppercase">Notes</span>
+      <span></span>`;
+    l.insertBefore(hdr,l.firstChild);
+  }
+}
+function addEquip(){
+  if(!cur().equipment)cur().equipment=[];
+  cur().equipment.push({name:'',type:'',bonus:'',notes:''});
+  renderEquip();saveAll();
+}
+
+function renderInv(){
+  const l=document.getElementById('invlist');if(!l)return;l.innerHTML='';
+  const items=cur().inventory||[];
+  if(!items.length){
+    l.innerHTML='<div style="color:var(--text3);font-size:12px;padding:6px 0">Inventaire vide.</div>';return;
+  }
+  items.forEach((it,i)=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:grid;grid-template-columns:1fr 60px 1fr auto;gap:8px;align-items:center;margin-bottom:6px';
+    row.innerHTML=`
+      <input type="text" value="${esc(it.name||'')}" placeholder="Nom…"
+        oninput="cur().inventory[${i}].name=this.value;saveAll()">
+      <input type="text" value="${esc(it.qty||'')}" placeholder="Qté"
+        oninput="cur().inventory[${i}].qty=this.value;saveAll()">
+      <input type="text" value="${esc(it.notes||'')}" placeholder="Description / notes…"
+        oninput="cur().inventory[${i}].notes=this.value;saveAll()">
+      <button class="btd" onclick="cur().inventory.splice(${i},1);renderInv();saveAll()">✕</button>`;
+    l.appendChild(row);
+  });
+  if(items.length){
+    const hdr=document.createElement('div');
+    hdr.style.cssText='display:grid;grid-template-columns:1fr 60px 1fr auto;gap:8px;margin-bottom:4px';
+    hdr.innerHTML=`<span style="font-size:10px;color:var(--text3);text-transform:uppercase">Objet</span>
+      <span style="font-size:10px;color:var(--text3);text-transform:uppercase">Qté</span>
+      <span style="font-size:10px;color:var(--text3);text-transform:uppercase">Notes</span>
+      <span></span>`;
+    l.insertBefore(hdr,l.firstChild);
+  }
+}
+function addInvItem(){
+  if(!cur().inventory)cur().inventory=[];
+  cur().inventory.push({name:'',qty:'1',notes:''});
+  renderInv();saveAll();
+}
 
 // COMBAT
 function renderCombat(){
@@ -1102,7 +1190,7 @@ function renderAll(){
   sv('cn',c.char.name||'');sv('cc',c.char.concept||'');sv('clv',c.char.level||1);
   sv('cxp',c.char.xp||0);sv('cbg',c.char.bg||'');
   sv('hmax',c.hp.max||10);sv('hcur',c.hp.cur||10);sv('cca',c.ca||10);sv('csp',c.speed||'30m');
-  updHP();renderAttrs();renderAbilities();
+  updHP();renderAttrs();renderAbilities();renderEquip();renderInv();
   renderCombat();renderIord();renderJournal();
   renderOD20();renderOTables();renderONotes();
   document.getElementById('chval').textContent=c.chaos||5;
