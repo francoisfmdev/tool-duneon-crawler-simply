@@ -44,13 +44,12 @@ button{cursor:pointer;font-family:var(--font-ui);transition:all .15s}
 .bts:hover{color:var(--accent);border-color:var(--accent2)}
 .bti{background:none;border:none;color:var(--text3);font-size:15px;padding:2px 5px}
 .bti:hover{color:var(--accent)}
-.agrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px;margin-bottom:16px}
+.agrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px}
 .acard{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:14px}
 .aname{background:none;border:none;color:var(--accent);font-family:var(--font-t);font-size:15px;width:100%;outline:none}
 .aname:focus{border-bottom:1px solid var(--accent2)}
-.aval{font-size:36px;font-weight:bold;color:var(--text);text-align:center;width:80px;background:none;border:none;outline:none;font-family:var(--font-t)}
-.aval:focus{background:var(--bg2);border-radius:4px}
-.amod{font-size:13px;color:var(--text2);text-align:center}
+.amod-big{font-size:48px;font-weight:bold;color:var(--text);text-align:center;width:80px;background:none;border:none;outline:none;font-family:var(--font-t);line-height:1}
+.amod-big:focus{background:var(--bg2);border-radius:4px}
 .adesc{width:100%;font-size:11px;background:none;border:none;color:var(--text3);outline:none;font-family:var(--font-b)}
 .hpwrap{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;margin-top:6px}
 .hpbar{height:100%;border-radius:4px;transition:width .3s,background .3s}
@@ -108,10 +107,9 @@ button{cursor:pointer;font-family:var(--font-ui);transition:all .15s}
 .ocoll-head .chev.open{transform:rotate(90deg)}
 .ocoll-body{padding:16px;display:none}
 /* Oracle d20 ranges */
-.od20-row{display:grid;grid-template-columns:28px 28px 20px 28px 1fr 26px;gap:5px;align-items:center;margin-bottom:6px}
-.od20-row .rng-num{font-family:var(--font-t);font-size:13px;color:var(--accent);text-align:center;background:var(--bg3);border-radius:3px;padding:3px 0;font-weight:bold}
-.od20-row input[type=number]{width:100%;font-size:12px;padding:4px 6px}
-.od20-row input[type=text]{width:100%;font-size:12px;padding:4px 8px}
+.od20-row{display:grid;grid-template-columns:54px 16px 54px 12px 1fr 44px;gap:6px;align-items:center;margin-bottom:7px}
+.od20-row input[type=number]{width:100%;font-size:14px;padding:6px 4px;text-align:center}
+.od20-row input[type=text]{width:100%;font-size:13px;padding:6px 8px}
 .od20-row .col-badge{font-size:10px;padding:2px 0;border-radius:3px;text-align:center;border:1px solid currentColor}
 /* Tables libres */
 .otcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:12px;overflow:hidden}
@@ -193,7 +191,7 @@ hr.sep{border:none;border-top:1px solid var(--border);margin:16px 0}
   <div class="sub">Points de vie & CA</div>
   <div class="card">
     <div class="fx" style="gap:20px;flex-wrap:wrap">
-      <div class="fld"><label>PV max</label><div class="fx"><input type="number" id="hmax" value="10" min="1" oninput="updHP()"><span style="font-size:12px;color:var(--text3)">10 + mod Physique</span></div></div>
+      <div class="fld"><label>PV max</label><div class="fx"><input type="number" id="hmax" value="10" min="1" oninput="updHP()"><span style="font-size:12px;color:var(--text3)">ex. 10 + mod Physique</span></div></div>
       <div class="fld"><label>PV actuels</label><div class="fx"><button class="bts" onclick="chHP(-1)">−</button><input type="number" id="hcur" value="10" min="0" oninput="updHP()"><button class="bts" onclick="chHP(1)">+</button></div></div>
       <div class="fld"><label>CA</label><input type="number" id="cca" value="10" min="1" oninput="sc('ca',+this.value)"></div>
       <div class="fld"><label>Vitesse</label><input type="text" id="csp" value="30m" style="width:72px" oninput="sc('speed',this.value)"></div>
@@ -468,10 +466,10 @@ hr.sep{border:none;border-top:1px solid var(--border);margin:16px 0}
 <script>
 const SK='solus_v5';
 const DATTRS=[
-  {id:'ph',name:'Physique',val:10,desc:'Force, endurance, résistance'},
-  {id:'ag',name:'Agilité',val:10,desc:'Vitesse, précision, discrétion'},
-  {id:'sp',name:'Esprit',val:10,desc:'Savoir, analyse, perception'},
-  {id:'so',name:'Social',val:10,desc:'Persuasion, charisme, tromperie'},
+  {id:'ph',name:'Physique',mod:0,desc:'Force, endurance, résistance'},
+  {id:'ag',name:'Agilité',mod:0,desc:'Vitesse, précision, discrétion'},
+  {id:'sp',name:'Esprit',mod:0,desc:'Savoir, analyse, perception'},
+  {id:'so',name:'Social',mod:0,desc:'Persuasion, charisme, tromperie'},
 ];
 const BTYPES={
   pnj:{label:'PNJ',col:'#4a7aaa',flds:['Rôle','Trait dominant','Motivation','Relation','Localisation','Notes']},
@@ -551,7 +549,7 @@ function renderBar(){
 }
 function switchChar(id){curId=id;renderBar();renderAll();applyTheme();}
 function newChar(){const name=prompt('Nom :','Nouveau personnage');if(!name)return;const c=blank(name);chars.push(c);curId=c.id;saveAll();renderBar();renderAll();applyTheme();}
-function delChar(id){if(chars.length<=1){alert('Il faut au moins un personnage.');return;}if(!confirm('Supprimer ?'))return;chars=chars.filter(c=>c.id!==id);if(curId===id)curId=chars[0].id;saveAll();renderBar();renderAll();applyTheme();}
+function delChar(id){if(chars.length<=1){alert('Il faut au moins un personnage.');return;}chars=chars.filter(c=>c.id!==id);if(curId===id)curId=chars[0].id;saveAll();renderBar();renderAll();applyTheme();}
 
 // TABS
 function showTab(n,btn){
@@ -593,30 +591,34 @@ function renderThemeEditor(){
 function renderAttrs(){
   const g=document.getElementById('agrid');if(!g)return;g.innerHTML='';
   cur().attrs.forEach((a,i)=>{
+    // migration: si ancien format avec val, convertir
+    if(a.val!==undefined && a.mod===undefined){a.mod=md(a.val);delete a.val;}
+    const m=a.mod??0;
     const c=document.createElement('div');c.className='acard';
     c.innerHTML=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
       <input class="aname" value="${esc(a.name)}" oninput="cur().attrs[${i}].name=this.value;renderSaves();renderRAttr();renderTalents();saveAll()">
       <button class="bti" onclick="delAttr(${i})">✕</button></div>
       <div style="display:flex;align-items:center;gap:8px;justify-content:center;margin:8px 0">
-        <button class="bts" onclick="chAV(${i},-1)">−</button>
-        <input class="aval" type="number" value="${a.val}" min="1" max="30"
-          oninput="cur().attrs[${i}].val=parseInt(this.value)||10;document.getElementById('am${i}').textContent=ms(cur().attrs[${i}].val);renderSaves();saveAll()">
-        <button class="bts" onclick="chAV(${i},1)">+</button></div>
-      <div class="amod" id="am${i}">${ms(a.val)}</div>
+        <button class="bts" onclick="chAM(${i},-1)">−</button>
+        <input class="amod-big" type="number" value="${m}" min="-5" max="10"
+          oninput="cur().attrs[${i}].mod=parseInt(this.value)||0;renderSaves();saveAll()">
+        <button class="bts" onclick="chAM(${i},1)">+</button></div>
+      <div style="text-align:center;font-size:11px;color:var(--text3);margin-bottom:6px">modificateur</div>
       <input class="adesc" value="${esc(a.desc)}" placeholder="Description…" oninput="cur().attrs[${i}].desc=this.value;saveAll()">`;
     g.appendChild(c);
   });
   renderSaves();renderRAttr();
 }
-function chAV(i,d){const a=cur().attrs[i];a.val=Math.max(1,Math.min(30,a.val+d));renderAttrs();saveAll();}
-function delAttr(i){if(!confirm('Supprimer cet attribut ?'))return;cur().attrs.splice(i,1);renderAttrs();saveAll();}
-function addAttr(){cur().attrs.push({id:'a'+Date.now(),name:'Attribut',val:10,desc:''});renderAttrs();saveAll();}
+function chAM(i,d){const a=cur().attrs[i];a.mod=Math.max(-5,Math.min(10,(a.mod??0)+d));renderAttrs();saveAll();}
+function delAttr(i){cur().attrs.splice(i,1);renderAttrs();saveAll();}
+function addAttr(){cur().attrs.push({id:'a'+Date.now(),name:'Attribut',mod:0,desc:''});renderAttrs();saveAll();}
 
 // SAVES
 function renderSaves(){
   const l=document.getElementById('savelist');if(!l)return;l.innerHTML='';
   cur().attrs.forEach((a,i)=>{
-    const k='s'+a.id,p=cur().saveProf[k]||false,t=md(a.val)+(p?2:0);
+    if(a.val!==undefined && a.mod===undefined){a.mod=md(a.val);delete a.val;}
+    const k='s'+a.id,p=cur().saveProf[k]||false,m=a.mod??0,t=m+(p?2:0);
     const r=document.createElement('div');r.style.cssText='display:flex;align-items:center;gap:8px;font-size:13px';
     r.innerHTML=`<input type="checkbox" ${p?'checked':''} onchange="cur().saveProf['${k}']=this.checked;renderSaves();saveAll()">
       <span style="min-width:100px">${esc(a.name)}</span>
@@ -625,7 +627,12 @@ function renderSaves(){
     l.appendChild(r);
   });
 }
-function qSave(i){const a=cur().attrs[i],k='s'+a.id,p=cur().saveProf[k]||false,t=md(a.val)+(p?2:0);const d=Math.ceil(Math.random()*20);alert(`Sauvegarde ${a.name}\nd20: ${d} ${t>=0?'+':''}${t} = ${d+t}`);}
+function qSave(i){
+  const a=cur().attrs[i];if(a.val!==undefined && a.mod===undefined){a.mod=md(a.val);delete a.val;}
+  const k='s'+a.id,p=cur().saveProf[k]||false,t=(a.mod??0)+(p?2:0);
+  const d=Math.ceil(Math.random()*20);
+  alert(`Sauvegarde ${a.name}\nd20: ${d} ${t>=0?'+':''}${t} = ${d+t}`);
+}
 
 // HP
 function updHP(){
@@ -644,14 +651,25 @@ function setAdv(m,ctx){
   ['dis','nor','adv'].forEach(x=>{const b=document.getElementById(pre+x);if(!b)return;b.className='advbtn'+(m===x?(x==='dis'?' sdis':' son'):'');});
 }
 function rd20(m){const d1=Math.ceil(Math.random()*20);if(m==='nor')return{die:d1,det:`d20: ${d1}`};const d2=Math.ceil(Math.random()*20),k=m==='adv'?Math.max(d1,d2):Math.min(d1,d2);return{die:k,det:`${m==='adv'?'Avantage':'Désavantage'}: ${d1}/${d2} → ${k}`};}
-function renderRAttr(){['rattr','cattr'].forEach(id=>{const s=document.getElementById(id);if(!s)return;const prev=s.value;s.innerHTML=cur().attrs.map(a=>`<option value="${a.id}">${esc(a.name)} (${ms(a.val)})</option>`).join('');if(prev)s.value=prev;});}
+function renderRAttr(){
+  ['rattr','cattr'].forEach(id=>{
+    const s=document.getElementById(id);if(!s)return;
+    const prev=s.value;
+    s.innerHTML=cur().attrs.map(a=>{
+      if(a.val!==undefined && a.mod===undefined){a.mod=md(a.val);delete a.val;}
+      const m=a.mod??0;return`<option value="${a.id}">${esc(a.name)} (${m>=0?'+':''}${m})</option>`;
+    }).join('');
+    if(prev)s.value=prev;
+  });
+}
 function rollAct(){
   const c=cur(),a=c.attrs.find(x=>x.id===gv('rattr'))||c.attrs[0];
-  const bon=parseInt(gv('rbon'))||0,dc=parseInt(gv('rdc'))||13;
-  const{die,det}=rd20(aMode),tot=die+md(a.val)+bon;
+  if(a.val!==undefined && a.mod===undefined){a.mod=md(a.val);delete a.val;}
+  const m=a.mod??0,bon=parseInt(gv('rbon'))||0,dc=parseInt(gv('rdc'))||13;
+  const{die,det}=rd20(aMode),tot=die+m+bon;
   const crit=die===20,fum=die===1,suc=tot>=dc;
   let lab,cls;if(fum){lab='Échec critique !';cls='rf';}else if(crit){lab='Succès critique !';cls='rc';}else if(suc){lab='Succès';cls='rs';}else{lab='Échec';cls='rf';}
-  document.getElementById('rres').innerHTML=`<div class="rbig ${cls}">${tot}</div><div class="rlabel ${cls}">${lab}</div><div class="rdetail">${det} + mod ${esc(a.name)} (${ms(a.val)})${bon?` + ${bon}`:''} = ${tot} vs DD ${dc}</div>`;
+  document.getElementById('rres').innerHTML=`<div class="rbig ${cls}">${tot}</div><div class="rlabel ${cls}">${lab}</div><div class="rdetail">${det} + mod ${esc(a.name)} (${m>=0?'+':''}${m})${bon?` + ${bon}`:''} = ${tot} vs DD ${dc}</div>`;
 }
 
 // TALENTS
@@ -751,11 +769,14 @@ function addC(type){
   const c=cur();
   const ph=c.attrs.find(a=>a.name.toLowerCase().includes('physique'));
   const ag=c.attrs.find(a=>a.name.toLowerCase().includes('agilit'));
-  const def=type==='hero'?{name:c.char.name||'Héros',ca:c.ca||10,hpCur:c.hp.cur||10,hpMax:c.hp.max||10,phys:ph?.val||10,agi:ag?.val||10}:{name:'Inconnu',ca:10,hpCur:12,hpMax:12,phys:10,agi:10};
+  if(ph&&ph.val!==undefined&&ph.mod===undefined){ph.mod=md(ph.val);delete ph.val;}
+  if(ag&&ag.val!==undefined&&ag.mod===undefined){ag.mod=md(ag.val);delete ag.val;}
+  const phM=ph?.mod??0, agM=ag?.mod??0;
+  const def=type==='hero'?{name:c.char.name||'Héros',ca:c.ca||10,hpCur:c.hp.cur||10,hpMax:c.hp.max||10,phys:phM,agi:agM}:{name:'Inconnu',ca:10,hpCur:12,hpMax:12,phys:0,agi:0};
   c.combatants.push({...def,type,init:0,conditions:''});renderCombat();saveAll();
 }
 function chCHP(i,d){const c=cur().combatants[i];c.hpCur=Math.max(0,Math.min(c.hpMax,c.hpCur+d));renderCombat();saveAll();}
-function rollI1(i){const c=cur().combatants[i];c.init=Math.ceil(Math.random()*20)+md(c.agi||10);renderCombat();renderIord();saveAll();}
+function rollI1(i){const c=cur().combatants[i];c.init=Math.ceil(Math.random()*20)+(c.agi||0);renderCombat();renderIord();saveAll();}
 function rollInits(){cur().combatants.forEach((_,i)=>rollI1(i));}
 function renderIord(){
   const box=document.getElementById('iord');if(!box)return;
@@ -767,16 +788,17 @@ function renderIord(){
     <span style="font-size:11px;color:var(--text3);margin-left:auto">${c.hpCur}/${c.hpMax} PV · CA ${c.ca}</span></div>`).join('');
 }
 function clearDead(){cur().combatants=cur().combatants.filter(c=>c.hpCur>0);renderCombat();renderIord();saveAll();}
-function clearCombat(){if(!confirm('Vider le combat ?'))return;cur().combatants=[];renderCombat();renderIord();saveAll();}
+function clearCombat(){cur().combatants=[];renderCombat();renderIord();saveAll();}
 function rollAtk(){
   const c=cur(),a=c.attrs.find(x=>x.id===gv('cattr'))||c.attrs[0];
-  const bon=parseInt(gv('cbon'))||0,ca=parseInt(gv('cca2'))||10,dmg=gv('cdmg');
-  const{die,det}=rd20(cMode),atk=die+md(a?.val||10)+bon;
+  if(a&&a.val!==undefined && a.mod===undefined){a.mod=md(a.val);delete a.val;}
+  const m=a?.mod??0,bon=parseInt(gv('cbon'))||0,ca=parseInt(gv('cca2'))||10,dmg=gv('cdmg');
+  const{die,det}=rd20(cMode),atk=die+m+bon;
   const hit=atk>=ca,crit=die===20,fum=die===1;
   let ex='';if(hit||crit){const d=rollD(dmg)+(crit?rollD(dmg):0);ex=` — ${d} dégâts${crit?' (CRIT×2)':''}`;}
   const lab=fum?'Raté critique !':crit?`Touché critique !${ex}`:hit?`Touché${ex}`:'Manqué';
   const cls=fum?'rf':crit?'rc':hit?'rs':'rf';
-  document.getElementById('cres').innerHTML=`<div class="rbig ${cls}">${atk}</div><div class="rlabel ${cls}">${lab}</div><div class="rdetail">${det} + mod ${esc(a?.name||'')} (${ms(a?.val||10)})${bon?` + ${bon}`:''} = ${atk} vs CA ${ca}</div>`;
+  document.getElementById('cres').innerHTML=`<div class="rbig ${cls}">${atk}</div><div class="rlabel ${cls}">${lab}</div><div class="rdetail">${det} + mod ${esc(a?.name||'')} (${m>=0?'+':''}${m})${bon?` + ${bon}`:''} = ${atk} vs CA ${ca}</div>`;
 }
 function rollD(expr){const m=expr.match(/(\d+)d(\d+)/);if(!m)return 0;let t=0;for(let i=0;i<+m[1];i++)t+=Math.ceil(Math.random()*+m[2]);return t;}
 
@@ -816,37 +838,49 @@ function renderOD20(){
   const ed=document.getElementById('od20-editor');if(!ed)return;
   const rows=cur().oracle.od20;
   ed.innerHTML='';
+
+  // En-tête colonnes
+  const hdr=document.createElement('div');
+  hdr.style.cssText='display:grid;grid-template-columns:54px 16px 54px 12px 1fr 44px;gap:6px;margin-bottom:4px';
+  hdr.innerHTML=`<span style="font-size:10px;color:var(--text3);text-transform:uppercase;text-align:center">De</span>
+    <span></span>
+    <span style="font-size:10px;color:var(--text3);text-transform:uppercase;text-align:center">À</span>
+    <span></span>
+    <span style="font-size:10px;color:var(--text3);text-transform:uppercase">Libellé</span>
+    <span style="font-size:10px;color:var(--text3);text-transform:uppercase;text-align:center">Couleur</span>`;
+  ed.appendChild(hdr);
+
   rows.forEach((r,i)=>{
     const row=document.createElement('div');
     row.className='od20-row';
-    // Badge couleur (preview)
-    const rangeStr=r.from===r.to?String(r.from):`${r.from}–${r.to}`;
     row.innerHTML=`
-      <input type="number" value="${r.from}" min="1" max="20" style="width:100%;font-size:12px;padding:4px 4px"
+      <input type="number" value="${r.from}" min="1" max="20"
         oninput="cur().oracle.od20[${i}].from=+this.value;renderOD20();saveAll()">
-      <span style="color:var(--text3);text-align:center;font-size:12px;padding:4px 0">→</span>
-      <input type="number" value="${r.to}" min="1" max="20" style="width:100%;font-size:12px;padding:4px 4px"
+      <span style="color:var(--text3);text-align:center;font-size:14px;font-weight:300">→</span>
+      <input type="number" value="${r.to}" min="1" max="20"
         oninput="cur().oracle.od20[${i}].to=+this.value;renderOD20();saveAll()">
-      <span style="font-size:10px;color:var(--text3);text-align:center">:</span>
-      <input type="text" value="${esc(r.label)}" placeholder="Libellé…" style="font-size:13px"
+      <span style="color:var(--text3);text-align:center;font-size:12px">:</span>
+      <input type="text" value="${esc(r.label)}" placeholder="Libellé…"
         oninput="cur().oracle.od20[${i}].label=this.value;saveAll()">
-      <input type="color" value="${r.col||'#888888'}"
-        oninput="cur().oracle.od20[${i}].col=this.value;saveAll()" style="width:36px;height:28px">
+      <input type="color" value="${r.col||'#888888'}" style="width:44px;height:34px"
+        oninput="cur().oracle.od20[${i}].col=this.value;saveAll()">
     `;
     ed.appendChild(row);
   });
-  // Aperçu visuel des plages
+
+  // Barre de visualisation
   const preview=document.createElement('div');
-  preview.style.cssText='display:flex;height:16px;border-radius:4px;overflow:hidden;margin-top:10px;margin-bottom:4px';
+  preview.style.cssText='display:flex;height:18px;border-radius:4px;overflow:hidden;margin-top:12px;margin-bottom:4px';
   rows.forEach(r=>{
-    const span=r.to-r.from+1;
+    const span=Math.max(1,r.to-r.from+1);
     const seg=document.createElement('div');
     seg.style.cssText=`flex:${span};background:${r.col||'#888'};transition:flex .2s`;
     seg.title=`${r.from}–${r.to}: ${r.label}`;
     preview.appendChild(seg);
   });
   ed.appendChild(preview);
-  // Légende
+
+  // Légende pills
   const leg=document.createElement('div');
   leg.style.cssText='display:flex;flex-wrap:wrap;gap:6px;margin-top:6px';
   rows.forEach(r=>{
@@ -876,7 +910,6 @@ function rollOD20(){
 }
 
 function resetOD20(){
-  if(!confirm('Réinitialiser les plages par défaut ?'))return;
   ensureOracle();
   cur().oracle.od20=JSON.parse(JSON.stringify(DEFAULT_OD20));
   renderOD20();saveAll();
@@ -890,20 +923,33 @@ function renderOTables(){
   if(!tables.length){l.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:16px 0">Aucune table. Créez-en une ci-dessus.</div>';return;}
   l.innerHTML='';
   tables.forEach((t,ti)=>{
-    const rows=(t.rows||[]).map((r,ri)=>`
-      <div class="otrow">
-        <div class="rlbl">${r.from}${r.to!==r.from?'–'+r.to:''}</div>
-        <div style="display:flex;gap:4px;align-items:center">
-          <input type="number" value="${r.from}" min="1" max="20" style="width:44px;font-size:12px;padding:4px"
-            oninput="cur().oracle.tables[${ti}].rows[${ri}].from=+this.value;renderOTables();saveAll()">
-          <span style="font-size:11px;color:var(--text3)">–</span>
-          <input type="number" value="${r.to}" min="1" max="20" style="width:44px;font-size:12px;padding:4px"
-            oninput="cur().oracle.tables[${ti}].rows[${ri}].to=+this.value;renderOTables();saveAll()">
+    const rows=(t.rows||[]).map((r,ri)=>{
+      const isSingle=r.single||(r.from===r.to);
+      const lbl=isSingle?String(r.from):`${r.from}–${r.to}`;
+      const rangeFields=isSingle
+        ?`<div style="display:flex;align-items:center;gap:4px">
+            <input type="number" value="${r.from}" min="1" max="20" style="width:52px;font-size:13px;padding:5px;text-align:center"
+              oninput="cur().oracle.tables[${ti}].rows[${ri}].from=+this.value;cur().oracle.tables[${ti}].rows[${ri}].to=+this.value;renderOTables();saveAll()">
+            <button class="bts" onclick="cur().oracle.tables[${ti}].rows[${ri}].single=false;cur().oracle.tables[${ti}].rows[${ri}].to=cur().oracle.tables[${ti}].rows[${ri}].from+4;renderOTables();saveAll()" title="Convertir en plage">↔</button>
+          </div>`
+        :`<div style="display:flex;align-items:center;gap:4px">
+            <input type="number" value="${r.from}" min="1" max="20" style="width:48px;font-size:13px;padding:5px;text-align:center"
+              oninput="cur().oracle.tables[${ti}].rows[${ri}].from=+this.value;renderOTables();saveAll()">
+            <span style="color:var(--text3);font-size:12px">–</span>
+            <input type="number" value="${r.to}" min="1" max="20" style="width:48px;font-size:13px;padding:5px;text-align:center"
+              oninput="cur().oracle.tables[${ti}].rows[${ri}].to=+this.value;renderOTables();saveAll()">
+            <button class="bts" onclick="cur().oracle.tables[${ti}].rows[${ri}].single=true;cur().oracle.tables[${ti}].rows[${ri}].to=cur().oracle.tables[${ti}].rows[${ri}].from;renderOTables();saveAll()" title="Convertir en valeur unique">⇒</button>
+          </div>`;
+      return`<div style="display:grid;grid-template-columns:40px 1fr auto;gap:8px;align-items:center;margin-bottom:6px">
+        <div style="font-family:var(--font-t);font-size:12px;color:var(--accent);text-align:center;background:var(--bg3);border-radius:4px;padding:4px 2px;font-weight:bold;white-space:nowrap">${lbl}</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          ${rangeFields}
+          <input type="text" value="${esc(r.text||'')}" placeholder="Résultat…" style="flex:1;font-size:13px"
+            oninput="cur().oracle.tables[${ti}].rows[${ri}].text=this.value;saveAll()">
         </div>
-        <input type="text" value="${esc(r.text||'')}" placeholder="Résultat…"
-          oninput="cur().oracle.tables[${ti}].rows[${ri}].text=this.value;saveAll()">
         <button class="btd" onclick="cur().oracle.tables[${ti}].rows.splice(${ri},1);renderOTables();saveAll()">✕</button>
-      </div>`).join('');
+      </div>`;
+    }).join('');
     const card=document.createElement('div');card.className='otcard';
     card.innerHTML=`<div class="othead">
       <span style="font-family:var(--font-t);font-size:13px;color:var(--accent);white-space:nowrap">d20</span>
@@ -914,14 +960,16 @@ function renderOTables(){
       <button class="btd" onclick="cur().oracle.tables.splice(${ti},1);renderOTables();saveAll()">✕</button>
     </div>
     <div class="otbody">
-      <div style="display:grid;grid-template-columns:44px 88px 1fr auto;gap:6px;margin-bottom:8px">
-        <span style="font-size:10px;color:var(--text3);text-transform:uppercase">Affich.</span>
-        <span style="font-size:10px;color:var(--text3);text-transform:uppercase">Plage</span>
-        <span style="font-size:10px;color:var(--text3);text-transform:uppercase">Résultat</span>
+      <div style="display:grid;grid-template-columns:40px 1fr auto;gap:8px;margin-bottom:8px">
+        <span style="font-size:10px;color:var(--text3);text-transform:uppercase;text-align:center">Affich.</span>
+        <span style="font-size:10px;color:var(--text3);text-transform:uppercase">Plage / Valeur · Résultat</span>
         <span></span>
       </div>
       ${rows}
-      <button class="bts" onclick="addOTRow(${ti})" style="margin-top:6px">+ Ligne</button>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="bts" onclick="addOTRow(${ti},false)">+ Plage</button>
+        <button class="bts" onclick="addOTRow(${ti},true)">+ Valeur unique</button>
+      </div>
       <div class="ot-result" id="otr-${ti}"></div>
     </div>`;
     l.appendChild(card);
@@ -929,14 +977,17 @@ function renderOTables(){
 }
 function addOTable(){
   ensureOracle();
-  cur().oracle.tables.unshift({name:'',rows:[{from:1,to:5,text:''},{from:6,to:10,text:''},{from:11,to:15,text:''},{from:16,to:20,text:''}]});
+  cur().oracle.tables.unshift({name:'',rows:[
+    {from:1,to:5,text:'',single:false},{from:6,to:10,text:'',single:false},
+    {from:11,to:15,text:'',single:false},{from:16,to:20,text:'',single:false}
+  ]});
   renderOTables();saveAll();setTimeout(()=>{const t=document.querySelector('.otname');if(t)t.focus();},50);
 }
-function addOTRow(ti){
+function addOTRow(ti,single=false){
   ensureOracle();const rows=cur().oracle.tables[ti].rows||[];
   const lastTo=rows.length?rows[rows.length-1].to:0;
-  const from=Math.min(20,lastTo+1),to=Math.min(20,from+4);
-  cur().oracle.tables[ti].rows.push({from,to,text:''});renderOTables();saveAll();
+  const from=Math.min(20,lastTo+1),to=single?from:Math.min(20,from+4);
+  cur().oracle.tables[ti].rows.push({from,to,text:'',single});renderOTables();saveAll();
 }
 function mvOT(i,d){const ts=cur().oracle.tables,j=i+d;if(j<0||j>=ts.length)return;[ts[i],ts[j]]=[ts[j],ts[i]];renderOTables();saveAll();}
 function rollOTable(ti){
