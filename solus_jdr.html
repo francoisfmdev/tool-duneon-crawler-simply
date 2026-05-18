@@ -130,6 +130,10 @@ button{cursor:pointer;font-family:var(--font-ui);transition:all .15s}
 .ontitle:focus{border-bottom:1px solid var(--accent2)}
 .onbody{padding:12px 14px}
 .onbody textarea{width:100%;min-height:80px;resize:vertical;line-height:1.7}
+/* Filtres journal */
+.jfbtn{font-size:11px;padding:3px 10px;border-radius:999px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;transition:all .15s;font-family:var(--font-ui)}
+.jfbtn:hover{border-color:var(--accent2);color:var(--accent)}
+.jfbtn.active{background:var(--accent2);border-color:var(--accent);color:#000;font-weight:600}
 /* Theme */
 .theme-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px}
 .theme-swatch{display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px}
@@ -139,16 +143,6 @@ button{cursor:pointer;font-family:var(--font-ui);transition:all .15s}
 .fx{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .sp{flex:1}
 hr.sep{border:none;border-top:1px solid var(--border);margin:16px 0}
-@media print{
-  #char-bar,nav,.bts,.btn,.bta,.btd,.bti,.rpanel,.advrow,.tchooser,.theme-grid,.preset-row,.ocoll-head .chev{display:none!important}
-  .tab{display:block!important;page-break-after:always}
-  .tab:last-child{page-break-after:avoid}
-  .ocoll-body,.tab{display:block!important}
-  body{background:white;color:black;font-size:12px}
-  :root{--text:black;--text2:#444;--text3:#888;--accent:#7a5020;--bg2:#f8f8f8;--bg3:#f0f0f0}
-  .stitle,.otname,.jtitle{color:#7a5020}
-  .card,.jcard,.ccrd,.bcard,.otcard,.oncard,.ocoll{background:white;border:1px solid #ccc}
-}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 </style>
 </head>
@@ -159,7 +153,9 @@ hr.sep{border:none;border-top:1px solid var(--border);margin:16px 0}
   <div id="char-pills"></div>
   <button class="bts" onclick="newChar()">+ Nouveau personnage</button>
   <button class="bts" onclick="showTab('theme',document.querySelector('[data-tab=theme]'))" style="margin-left:4px">🎨 Thème</button>
-  <button class="bts" onclick="window.print()" style="margin-left:4px">⎙ PDF</button>
+  <button class="bts" onclick="exportJSON()" style="margin-left:4px" title="Exporter toutes les données en fichier JSON (Ctrl+S)">⬇ Exporter</button>
+  <label class="bts" style="margin-left:2px;cursor:pointer" title="Importer un fichier JSON exporté depuis SOLUS">⬆ Importer<input type="file" id="import-file" accept=".json" style="display:none" onchange="importJSON(this)"></label>
+  <button class="bts" onclick="exportPDF()" style="margin-left:4px">⎙ PDF</button>
   <span class="save-st" id="sst">—</span>
 </div>
 
@@ -286,18 +282,53 @@ hr.sep{border:none;border-top:1px solid var(--border);margin:16px 0}
 <!-- JOURNAL -->
 <div class="tab" id="tab-journal">
   <div class="stitle">Journal & Blocs</div>
-  <div class="fx" style="margin-bottom:16px;gap:8px;flex-wrap:wrap">
-    <button class="bta" onclick="addEntry()">+ Entrée de journal</button>
-    <button class="btn" onclick="addBloc('pnj')">+ PNJ</button>
-    <button class="btn" onclick="addBloc('lieu')">+ Lieu</button>
-    <button class="btn" onclick="addBloc('objet')">+ Objet</button>
-    <button class="btn" onclick="addBloc('quete')">+ Quête</button>
-    <button class="btn" onclick="addBloc('faction')">+ Faction</button>
-    <button class="btn" onclick="addBloc('rumeur')">+ Rumeur</button>
-    <button class="btn" onclick="addBloc('note')">+ Note</button>
-    <input type="text" id="jsearch" placeholder="Rechercher…" oninput="renderJournal(this.value)" style="flex:1;min-width:140px">
+
+  <!-- Barre filtres + ajout -->
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+    <button class="bta" onclick="openJournalModal()">+ Ajouter</button>
+    <div style="width:1px;height:24px;background:var(--border);margin:0 4px"></div>
+    <button class="jfbtn active" id="jf-all"    onclick="setJFilter('all',this)">Tout</button>
+    <button class="jfbtn" id="jf-entry"  onclick="setJFilter('entry',this)">Journal</button>
+    <button class="jfbtn" id="jf-pnj"    onclick="setJFilter('pnj',this)">PNJ</button>
+    <button class="jfbtn" id="jf-lieu"   onclick="setJFilter('lieu',this)">Lieu</button>
+    <button class="jfbtn" id="jf-objet"  onclick="setJFilter('objet',this)">Objet</button>
+    <button class="jfbtn" id="jf-quete"  onclick="setJFilter('quete',this)">Quête</button>
+    <button class="jfbtn" id="jf-faction" onclick="setJFilter('faction',this)">Faction</button>
+    <button class="jfbtn" id="jf-rumeur" onclick="setJFilter('rumeur',this)">Rumeur</button>
+    <button class="jfbtn" id="jf-note"   onclick="setJFilter('note',this)">Note</button>
+    <input type="text" id="jsearch" placeholder="Rechercher…" oninput="renderJournal()" style="flex:1;min-width:120px;margin-left:auto">
   </div>
+
   <div id="jlist"></div>
+</div>
+
+<!-- MODAL ajout journal -->
+<div id="jmodal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:500;align-items:center;justify-content:center">
+  <div id="jmodal" style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);width:min(520px,92vw);max-height:85vh;overflow-y:auto;padding:20px;position:relative">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <span style="font-family:var(--font-t);font-size:17px;color:var(--accent)">Nouvelle entrée</span>
+      <div style="flex:1"></div>
+      <div class="fld" style="flex-direction:row;align-items:center;gap:8px;margin:0">
+        <label style="margin:0;white-space:nowrap">Type</label>
+        <select id="jm-type" style="padding:5px 10px;font-size:13px" onchange="renderJModal()">
+          <option value="entry">Journal</option>
+          <option value="pnj">PNJ</option>
+          <option value="lieu">Lieu</option>
+          <option value="objet">Objet</option>
+          <option value="quete">Quête</option>
+          <option value="faction">Faction</option>
+          <option value="rumeur">Rumeur / Indice</option>
+          <option value="note">Note libre</option>
+        </select>
+      </div>
+      <button class="bti" onclick="closeJournalModal()" style="font-size:18px">✕</button>
+    </div>
+    <div id="jm-fields"></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
+      <button class="btn" onclick="closeJournalModal()">Annuler</button>
+      <button class="bta" onclick="confirmJModal()">Ajouter</button>
+    </div>
+  </div>
 </div>
 
 <!-- ORACLE -->
@@ -500,12 +531,66 @@ function blank(name='Nouveau personnage'){
     oracle:{tables:[],notes:[],od20:JSON.parse(JSON.stringify(DEFAULT_OD20))},
     chaos:5,theme:{}};
 }
-function loadAll(){try{const r=localStorage.getItem(SK);if(r)chars=JSON.parse(r);}catch(e){}if(!chars.length)chars=[blank('Mon premier personnage')];curId=chars[0].id;}
+function loadAll(){
+  try{const r=localStorage.getItem(SK);if(r)chars=JSON.parse(r);}catch(e){}
+  if(!chars.length)chars=[blank('Mon premier personnage')];
+  curId=chars[0].id;
+}
+
 function saveAll(){
   try{localStorage.setItem(SK,JSON.stringify(chars));}catch(e){}
-  const el=document.getElementById('sst');el.textContent='✓ Sauvegardé';el.style.color='var(--green)';
-  clearTimeout(el._t);el._t=setTimeout(()=>{el.textContent='—';el.style.color='var(--text3)';},1400);
+  const el=document.getElementById('sst');
+  const now=new Date();
+  const ts=now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  el.textContent=`✓ ${ts}`;el.style.color='var(--green)';
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>{el.textContent=`· localStorage · Ctrl+S pour exporter`;el.style.color='var(--text3)';el.style.fontSize='10px';},2500);
 }
+
+function exportJSON(){
+  const data=JSON.stringify(chars,null,2);
+  const blob=new Blob([data],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const now=new Date();
+  const date=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  a.href=url;
+  a.download=`solus_${date}.json`;
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
+  const el=document.getElementById('sst');
+  el.textContent='⬇ Fichier exporté';el.style.color='var(--accent)';el.style.fontSize='11px';
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>{el.textContent='—';el.style.color='var(--text3)';el.style.fontSize='11px';},2500);
+}
+
+function importJSON(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!Array.isArray(data)||!data[0]?.id||!data[0]?.char) throw new Error('Format invalide');
+      chars=data;curId=chars[0].id;
+      localStorage.setItem(SK,JSON.stringify(chars));
+      renderBar();renderAll();applyTheme();
+      const el=document.getElementById('sst');
+      el.textContent=`⬆ ${data.length} personnage(s) importé(s)`;el.style.color='var(--green)';el.style.fontSize='11px';
+      clearTimeout(el._t);el._t=setTimeout(()=>{el.textContent='—';el.style.color='var(--text3)';},3000);
+    }catch(err){
+      const el=document.getElementById('sst');
+      el.textContent='⚠ Fichier invalide';el.style.color='var(--red)';
+      clearTimeout(el._t);el._t=setTimeout(()=>{el.textContent='—';el.style.color='var(--text3)';},3000);
+    }
+  };
+  reader.readAsText(file);
+  input.value=''; // reset pour pouvoir réimporter le même fichier
+}
+
+// Ctrl+S → export JSON
+document.addEventListener('keydown',ev=>{
+  if((ev.ctrlKey||ev.metaKey)&&ev.key==='s'){ev.preventDefault();exportJSON();}
+});
 function cur(){return chars.find(c=>c.id===curId)||chars[0];}
 function sc(p,v){const parts=p.split('.');let o=cur();for(let i=0;i<parts.length-1;i++)o=o[parts[i]];o[parts[parts.length-1]]=v;saveAll();}
 function gv(id){const e=document.getElementById(id);return e?e.value:'';}
@@ -906,50 +991,61 @@ function rollAtk(){
 function rollD(expr){const m=expr.match(/(\d+)d(\d+)/);if(!m)return 0;let t=0;for(let i=0;i<+m[1];i++)t+=Math.ceil(Math.random()*+m[2]);return t;}
 
 // JOURNAL + BLOCS fusionnés
-function renderJournal(filter=''){
+let jFilter='all';
+
+function setJFilter(f,btn){
+  jFilter=f;
+  document.querySelectorAll('.jfbtn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderJournal();
+}
+
+function renderJournal(){
   const l=document.getElementById('jlist');if(!l)return;l.innerHTML='';
   const c=cur();
-  const entries=c.journal||[];
-  const blocs=c.blocs||[];
+  const search=(document.getElementById('jsearch')?.value||'').toLowerCase();
+  const entries=(c.journal||[]).map((e,i)=>({kind:'entry',data:e,idx:i}));
+  const blocs=(c.blocs||[]).map((b,i)=>({kind:'bloc',data:b,idx:i}));
+  let all=[...entries,...blocs];
 
-  // Construire une liste unifiée avec type pour le rendu
-  const allItems=[
-    ...entries.map((e,i)=>({kind:'entry',data:e,idx:i})),
-    ...blocs.map((b,i)=>({kind:'bloc',data:b,idx:i})),
-  ];
+  // Filtre type
+  if(jFilter!=='all'){
+    all=all.filter(item=>
+      jFilter==='entry' ? item.kind==='entry' : (item.kind==='bloc' && item.data.type===jFilter)
+    );
+  }
+  // Filtre recherche
+  if(search){
+    all=all.filter(item=>{
+      const d=item.data;
+      const txt=item.kind==='entry'
+        ?(d.title+d.body).toLowerCase()
+        :(d.title+(d.fields||[]).join(' ')).toLowerCase();
+      return txt.includes(search);
+    });
+  }
 
-  const filtered=filter
-    ? allItems.filter(item=>{
-        const d=item.data;
-        const txt=item.kind==='entry'
-          ?(d.title+d.body).toLowerCase()
-          :(d.title+(d.fields||[]).join(' ')).toLowerCase();
-        return txt.includes(filter.toLowerCase());
-      })
-    : allItems;
-
-  if(!filtered.length){
-    l.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:24px">Aucun contenu. Ajoutez une entrée ou un bloc.</div>';
+  if(!all.length){
+    l.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:32px 0">Aucun contenu.</div>';
     return;
   }
 
-  // Afficher dans l'ordre inverse (plus récent en haut)
-  [...filtered].reverse().forEach(item=>{
+  [...all].reverse().forEach(item=>{
     if(item.kind==='entry'){
-      const en=item.data, i=item.idx;
+      const en=item.data,i=item.idx;
       const d=document.createElement('div');d.className='jcard';
       d.innerHTML=`<div class="jhead">
         <span style="font-size:10px;padding:2px 8px;border-radius:999px;border:1px solid var(--border2);color:var(--text3);margin-right:8px;white-space:nowrap">Journal</span>
         <input class="jtitle" value="${esc(en.title)}" placeholder="Titre de la scène…" oninput="cur().journal[${i}].title=this.value;saveAll()">
         <span style="font-size:11px;color:var(--text3);margin-right:8px">${en.date||''}</span>
-        <button class="bts" onclick="mvJournalEntry(${i},-1)" title="Monter">↑</button>
-        <button class="bts" onclick="mvJournalEntry(${i},1)" title="Descendre">↓</button>
+        <button class="bts" onclick="mvJE(${i},-1)">↑</button>
+        <button class="bts" onclick="mvJE(${i},1)">↓</button>
         <button class="btd" onclick="cur().journal.splice(${i},1);renderJournal();saveAll()">✕</button>
       </div>
       <textarea class="jbody" placeholder="Décrivez la scène…" oninput="cur().journal[${i}].body=this.value;saveAll()">${esc(en.body||'')}</textarea>`;
       l.appendChild(d);
     } else {
-      const b=item.data, i=item.idx;
+      const b=item.data,i=item.idx;
       const def=BTYPES[b.type]||BTYPES.note;
       const fh=def.flds.map((f,fi)=>`<div class="bfld"><label>${esc(f)}</label>${
         f==='Notes'||f==='Contenu'
@@ -969,18 +1065,63 @@ function renderJournal(filter=''){
   });
 }
 
-function addEntry(){
-  if(!cur().journal)cur().journal=[];
-  cur().journal.push({title:'',body:'',date:new Date().toLocaleDateString('fr-FR')});
-  renderJournal();saveAll();
-  setTimeout(()=>{const t=document.querySelector('.jtitle');if(t)t.focus();},50);
+function mvJE(i,d){const j=cur().journal,k=i+d;if(k<0||k>=j.length)return;[j[i],j[k]]=[j[k],j[i]];renderJournal();saveAll();}
+
+// MODAL
+function openJournalModal(){
+  document.getElementById('jmodal-overlay').style.display='flex';
+  renderJModal();
+}
+function closeJournalModal(){
+  document.getElementById('jmodal-overlay').style.display='none';
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeJournalModal();});
+
+function renderJModal(){
+  const type=document.getElementById('jm-type')?.value||'entry';
+  const fields=document.getElementById('jm-fields');if(!fields)return;
+  fields.innerHTML='';
+
+  if(type==='entry'){
+    fields.innerHTML=`
+      <div class="bfld"><label>Titre</label><input type="text" id="jm-title" placeholder="Titre de la scène…" style="width:100%"></div>
+      <div class="bfld" style="margin-top:10px"><label>Contenu</label>
+        <textarea id="jm-body" placeholder="Décrivez la scène, les événements…" style="min-height:120px;width:100%;resize:vertical;line-height:1.7"></textarea>
+      </div>`;
+  } else {
+    const def=BTYPES[type]||BTYPES.note;
+    fields.innerHTML=`<div class="bfld"><label>Titre</label><input type="text" id="jm-title" placeholder="Titre…" style="width:100%"></div>`
+      +def.flds.map((f,fi)=>`<div class="bfld" style="margin-top:10px"><label>${esc(f)}</label>${
+        f==='Notes'||f==='Contenu'
+          ?`<textarea id="jm-f${fi}" placeholder="…" style="min-height:80px;width:100%;resize:vertical;line-height:1.65"></textarea>`
+          :`<input type="text" id="jm-f${fi}" placeholder="…" style="width:100%">`
+      }</div>`).join('');
+  }
+  // Focus sur le premier champ
+  setTimeout(()=>{const f=fields.querySelector('input,textarea');if(f)f.focus();},60);
 }
 
-function mvJournalEntry(i,d){
-  const j=cur().journal,k=i+d;
-  if(k<0||k>=j.length)return;
-  [j[i],j[k]]=[j[k],j[i]];renderJournal();saveAll();
+function confirmJModal(){
+  const type=document.getElementById('jm-type')?.value||'entry';
+  const title=document.getElementById('jm-title')?.value||'';
+
+  if(type==='entry'){
+    const body=document.getElementById('jm-body')?.value||'';
+    if(!cur().journal)cur().journal=[];
+    cur().journal.push({title,body,date:new Date().toLocaleDateString('fr-FR')});
+  } else {
+    const def=BTYPES[type]||BTYPES.note;
+    const fvals=def.flds.map((_,fi)=>document.getElementById(`jm-f${fi}`)?.value||'');
+    if(!cur().blocs)cur().blocs=[];
+    cur().blocs.push({type,title,fields:fvals});
+  }
+  saveAll();renderJournal();closeJournalModal();
 }
+
+// Stub addEntry / addBloc gardés pour compatibilité interne
+function addEntry(){if(!cur().journal)cur().journal=[];cur().journal.push({title:'',body:'',date:new Date().toLocaleDateString('fr-FR')});renderJournal();saveAll();}
+function addBloc(type){const def=BTYPES[type]||BTYPES.note;if(!cur().blocs)cur().blocs=[];cur().blocs.push({type,title:'',fields:new Array(def.flds.length).fill('')});renderJournal();saveAll();}
+function mvBloc(i,d){const b=cur().blocs,j=i+d;if(j<0||j>=b.length)return;[b[i],b[j]]=[b[j],b[i]];renderJournal();saveAll();}
 
 // ORACLE 2d10
 function rollOracle(){
@@ -1195,6 +1336,228 @@ function renderAll(){
   renderOD20();renderOTables();renderONotes();
   document.getElementById('chval').textContent=c.chaos||5;
   document.getElementById('chlbl').textContent=CLBLS[c.chaos||5]||'';
+}
+
+// EXPORT PDF
+function exportPDF(){
+  const c=cur();
+  const pesc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  // ── FICHE ──
+  const attrsHtml=(c.attrs||[]).map(a=>{
+    const m=a.mod??0;
+    return`<div class="stat-box"><div class="stat-name">${pesc(a.name)}</div><div class="stat-val">${m>=0?'+':''}${m}</div><div class="stat-desc">${pesc(a.desc)}</div></div>`;
+  }).join('');
+
+  const savesHtml=(c.attrs||[]).map(a=>{
+    const k='s'+a.id,p=c.saveProf[k]||false,m=a.mod??0,t=m+(p?2:0);
+    return`<div class="save-row"><span class="save-dot" style="background:${p?'#7a5020':'#ccc'}"></span><span class="save-name">${pesc(a.name)}</span><span class="save-mod">${t>=0?'+':''}${t}</span></div>`;
+  }).join('');
+
+  const hpPct=Math.min(100,Math.max(0,((c.hp.cur||0)/(c.hp.max||1))*100));
+  const hpColor=hpPct>50?'#2a7a30':hpPct>25?'#8a6010':'#aa2020';
+
+  // Sorts & compétences
+  const abilities=(c.abilities||[]);
+  const byType={sort:[],compétence:[],talent:[]};
+  abilities.forEach(a=>{if(byType[a.type])byType[a.type].push(a);});
+
+  function abilSection(list,label){
+    if(!list.length)return'';
+    return`<h3 class="section-sub">${label}</h3>`+list.map(a=>{
+      const m=a.mod??0;
+      const extras=[
+        a.dd?`DD ${pesc(a.dd)}`:'',
+        a.range?`Portée : ${pesc(a.range)}`:'',
+        a.dmg?`Dégâts : ${pesc(a.dmg)}`:'',
+        a.mastery?['Novice +1','Apprenti +2','Compétent +3','Expert +4','Maître +5'][(a.mastery||1)-1]:'',
+      ].filter(Boolean).join(' · ');
+      return`<div class="abil-row">
+        <div class="abil-head"><strong>${pesc(a.name)}</strong>${extras?`<span class="abil-extras">${extras}</span>`:''}</div>
+        ${a.notes?`<div class="abil-notes">${pesc(a.notes)}</div>`:''}
+      </div>`;
+    }).join('');
+  }
+
+  // Équipement
+  const equipHtml=(c.equipment||[]).map(it=>`
+    <div class="item-row">
+      <div class="item-head"><strong>${pesc(it.name)}</strong>${it.type?` <span class="item-tag">${pesc(it.type)}</span>`:''}${it.bonus?` <span class="item-tag">${pesc(it.bonus)}</span>`:''}${it.prop?` <span class="item-tag">${pesc(it.prop)}</span>`:''}</div>
+      ${it.details?`<div class="item-notes">${pesc(it.details)}</div>`:''}
+    </div>`).join('');
+
+  const invHtml=(c.inventory||[]).map(it=>`
+    <div class="item-row">
+      <div class="item-head"><strong>${pesc(it.name)}</strong>${it.qty?` <span class="item-tag">×${pesc(it.qty)}</span>`:''}</div>
+      ${it.details?`<div class="item-notes">${pesc(it.details)}</div>`:''}
+    </div>`).join('');
+
+  // ── JOURNAL ──
+  const journalEntries=(c.journal||[]);
+  const blocs=(c.blocs||[]);
+
+  const journalHtml=journalEntries.map(e=>`
+    <div class="j-entry">
+      <div class="j-entry-head">
+        <span class="j-badge journal-badge">Journal</span>
+        <span class="j-title">${pesc(e.title||'Sans titre')}</span>
+        <span class="j-date">${pesc(e.date||'')}</span>
+      </div>
+      <div class="j-body">${pesc(e.body||'').replace(/\n/g,'<br>')}</div>
+    </div>`).join('');
+
+  const blocsGrouped={};
+  blocs.forEach(b=>{if(!blocsGrouped[b.type])blocsGrouped[b.type]=[];blocsGrouped[b.type].push(b);});
+  const blocsHtml=Object.entries(blocsGrouped).map(([type,list])=>{
+    const def=BTYPES[type]||BTYPES.note;
+    return`<h3 class="section-sub" style="color:${def.col};border-color:${def.col}40">${def.label}</h3>`
+      +list.map(b=>`<div class="j-entry">
+        <div class="j-entry-head"><span class="j-title">${pesc(b.title||'Sans titre')}</span></div>
+        <div class="j-fields">${(def.flds||[]).map((f,fi)=>b.fields?.[fi]?`<div><span class="field-lbl">${pesc(f)} :</span> ${pesc(b.fields[fi]).replace(/\n/g,'<br>')}</div>`:'').join('')}</div>
+      </div>`).join('');
+  }).join('');
+
+  // ── PAGE HTML ──
+  const html=`<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>${pesc(c.char.name||'Personnage')} — SOLUS</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Georgia',serif;font-size:12px;color:#111;background:white;padding:20px 28px;max-width:800px;margin:0 auto}
+h1{font-family:'Palatino Linotype',Palatino,serif;font-size:24px;color:#7a5020;border-bottom:2px solid #7a5020;padding-bottom:6px;margin-bottom:4px}
+h2{font-family:'Palatino Linotype',Palatino,serif;font-size:16px;color:#7a5020;border-bottom:1px solid #d0b888;padding-bottom:4px;margin:20px 0 10px}
+h3.section-sub{font-family:'Palatino Linotype',Palatino,serif;font-size:13px;color:#5a3010;border-bottom:1px solid #e0c898;padding-bottom:3px;margin:14px 0 8px}
+.meta{font-size:11px;color:#666;margin-bottom:16px;display:flex;gap:16px;flex-wrap:wrap}
+.meta span{display:flex;gap:4px;align-items:center}
+.meta strong{color:#333}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.stat-box{border:1px solid #d0b888;border-radius:4px;padding:8px;text-align:center;background:#fdf8f0}
+.stat-name{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#7a5020;font-weight:600;margin-bottom:4px}
+.stat-val{font-family:'Palatino Linotype',Palatino,serif;font-size:28px;font-weight:bold;color:#111;line-height:1}
+.stat-desc{font-size:9px;color:#888;margin-top:3px}
+
+/* HP */
+.hp-section{display:flex;gap:16px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.hp-block{border:1px solid #d0b888;border-radius:4px;padding:8px 14px;text-align:center;background:#fdf8f0;min-width:80px}
+.hp-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#7a5020;font-weight:600}
+.hp-val{font-family:'Palatino Linotype',Palatino,serif;font-size:22px;font-weight:bold}
+.hp-bar-wrap{flex:1;height:10px;background:#e8e0d0;border-radius:5px;overflow:hidden;min-width:120px}
+.hp-bar{height:100%;border-radius:5px;background:${hpColor}}
+
+/* Saves */
+.saves-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;margin-bottom:14px}
+.save-row{display:flex;align-items:center;gap:6px;font-size:11px;padding:3px 0}
+.save-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.save-name{flex:1;color:#333}
+.save-mod{font-family:'Palatino Linotype',Palatino,serif;font-size:14px;font-weight:bold;color:#7a5020;min-width:28px}
+
+/* Abilities */
+.abil-row{border-left:2px solid #d0b888;padding:6px 10px;margin-bottom:6px;background:#fdf8f0;border-radius:0 4px 4px 0}
+.abil-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.abil-extras{font-size:10px;color:#888}
+.abil-notes{font-size:11px;color:#555;margin-top:3px;line-height:1.5}
+
+/* Items */
+.item-row{border-bottom:1px solid #e8e0d0;padding:5px 0;margin-bottom:2px}
+.item-head{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.item-tag{font-size:10px;padding:1px 6px;border-radius:999px;border:1px solid #d0b888;color:#7a5020}
+.item-notes{font-size:11px;color:#555;margin-top:3px;line-height:1.5}
+
+/* Journal */
+.j-entry{border:1px solid #e0d0b8;border-radius:4px;padding:12px;margin-bottom:10px;background:#fefcf8}
+.j-entry-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.j-badge{font-size:9px;padding:2px 8px;border-radius:999px;border:1px solid;text-transform:uppercase;letter-spacing:.06em}
+.journal-badge{border-color:#888;color:#666}
+.j-title{font-family:'Palatino Linotype',Palatino,serif;font-size:15px;font-weight:bold;color:#3a2010;flex:1}
+.j-date{font-size:10px;color:#999}
+.j-body{font-size:12px;color:#333;line-height:1.75;white-space:pre-wrap}
+.j-fields{font-size:11px;color:#444;line-height:1.7}
+.j-fields div{margin-bottom:4px}
+.field-lbl{font-weight:600;color:#7a5020}
+.empty{color:#bbb;font-style:italic;font-size:11px;padding:8px 0}
+
+.col2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.page-break{page-break-before:always;margin-top:0}
+
+@media print{
+  body{padding:10px 16px}
+  .page-break{page-break-before:always}
+  a{display:none}
+}
+@media screen{
+  .print-btn{position:fixed;top:14px;right:14px;padding:8px 20px;background:#7a5020;color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-family:Georgia,serif;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+  .print-btn:hover{background:#5a3010}
+}
+</style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">⎙ Imprimer / Enregistrer PDF</button>
+
+<h1>${pesc(c.char.name||'Personnage sans nom')}</h1>
+<div class="meta">
+  ${c.char.concept?`<span><strong>Concept :</strong> ${pesc(c.char.concept)}</span>`:''}
+  <span><strong>Niveau :</strong> ${c.char.level||1}</span>
+  <span><strong>XP :</strong> ${c.char.xp||0}</span>
+  <span><strong>CA :</strong> ${c.ca||10}</span>
+  <span><strong>Vitesse :</strong> ${pesc(c.speed||'30m')}</span>
+  ${c.char.bg?`<span><strong>Background :</strong> ${pesc(c.char.bg)}</span>`:''}
+</div>
+
+<!-- Attributs -->
+<h2>Attributs</h2>
+<div class="stats-grid">${attrsHtml}</div>
+
+<!-- PV -->
+<div class="hp-section">
+  <div class="hp-block"><div class="hp-label">PV actuels</div><div class="hp-val">${c.hp.cur||0}</div></div>
+  <div class="hp-bar-wrap"><div class="hp-bar" style="width:${hpPct}%"></div></div>
+  <div class="hp-block"><div class="hp-label">PV max</div><div class="hp-val">${c.hp.max||10}</div></div>
+</div>
+
+<div class="col2">
+<div>
+<!-- Sauvegardes -->
+<h2>Sauvegardes</h2>
+<div class="saves-grid">${savesHtml}</div>
+</div>
+<div>
+<!-- Équipement -->
+<h2>Équipement</h2>
+${equipHtml||'<div class="empty">Aucun équipement.</div>'}
+</div>
+</div>
+
+<!-- Inventaire -->
+<h2>Inventaire</h2>
+${invHtml||'<div class="empty">Inventaire vide.</div>'}
+
+<!-- Sorts & Compétences -->
+<h2>Sorts & Compétences</h2>
+${abilSection(byType.sort,'Sorts')}
+${abilSection(byType.compétence,'Compétences')}
+${abilSection(byType.talent,'Talents')}
+${!abilities.length?'<div class="empty">Aucun sort ni compétence.</div>':''}
+
+<!-- Journal -->
+<div class="page-break">
+<h2>Journal d'aventure</h2>
+${journalHtml||'<div class="empty">Aucune entrée de journal.</div>'}
+${blocsHtml?`<h2 style="margin-top:24px">Blocs de notes</h2>${blocsHtml}`:''}
+</div>
+
+<div style="margin-top:24px;padding-top:10px;border-top:1px solid #d0b888;font-size:10px;color:#bbb;text-align:center">
+  SOLUS — généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}
+</div>
+</body>
+</html>`;
+
+  const w=window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
 }
 
 // BOOT
