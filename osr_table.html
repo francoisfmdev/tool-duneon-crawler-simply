@@ -264,7 +264,12 @@ select.inp option{background:var(--panel)}
 <!-- MAP -->
 <div class="pnl" id="pnl-map" style="flex-direction:row">
   <div class="mapleft">
-    <div class="ph" style="justify-content:center">Dessin</div>
+  <div class="ph" style="justify-content:space-between">
+    <span>Cartes</span>
+    <button class="btn sm" id="btn-map-add">+ Carte</button>
+  </div>
+  <div style="padding:4px 6px;flex-shrink:0;max-height:110px;overflow-y:auto" id="map-list"></div>
+  <div class="ph" style="justify-content:center">Dessin</div>
     <div class="tg2">
       <button class="tool on" data-t="wall">▐<span class="tl2">Mur</span></button>
       <button class="tool" data-t="floor">▩<span class="tl2">Sol</span></button>
@@ -311,7 +316,7 @@ select.inp option{background:var(--panel)}
   </div>
   <div class="mapwrap">
     <div class="maptb">
-      <span style="font-family:'Cinzel',serif;font-size:8px;color:var(--muted2);letter-spacing:.5px">CARTE</span>
+      <span id="map-name-lbl" style="font-family:'Cinzel',serif;font-size:9px;color:var(--gold);letter-spacing:.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px">—</span>
       <div class="sep"></div>
       <span id="mc-coord" style="font-family:'Cinzel',serif;font-size:9px;color:var(--gold2);margin-left:auto">—</span>
     </div>
@@ -435,11 +440,21 @@ function campsLoad(){ try{ camps=JSON.parse(localStorage.getItem('osr_camps')||'
 function campsSave(){ localStorage.setItem('osr_camps',JSON.stringify(camps)); }
 
 function campBlank(name){
+  const firstMap = mapBlank('Carte 1', 80, 60);
   return {id:uid(),name:name||'Campagne',createdAt:now(),updatedAt:now(),data:{
     advs:{},beasts:{},notes:'',
-    cells:{},texts:[],cols:80,rows:60,mapBg:'#0a0805',mapGrid:'#c9a84c',
+    maps:{[firstMap.id]:firstMap}, activeMapId:firstMap.id,
     tokens:{},initiative:[],curTurn:0,tokIdC:1
   }};
+}
+
+function mapBlank(name, cols, rows){
+  return {
+    id:uid(), name:name||'Carte', note:'',
+    cols:cols||80, rows:rows||60,
+    mapBg:'#0a0805', mapGrid:'#c9a84c',
+    cells:{}, texts:[], tokens:{}
+  };
 }
 
 function campSaveActive(){
@@ -448,11 +463,16 @@ function campSaveActive(){
   c.data.advs   = JSON.parse(JSON.stringify(advs));
   c.data.beasts = JSON.parse(JSON.stringify(beasts));
   c.data.notes  = $('notes-ta').value||'';
-  c.data.cells  = JSON.parse(JSON.stringify(cells));
-  c.data.texts  = JSON.parse(JSON.stringify(texts));
-  c.data.cols=COLS; c.data.rows=ROWS;
-  c.data.mapBg=mapBg; c.data.mapGrid=mapGrid;
-  c.data.tokens = JSON.parse(JSON.stringify(mapToks));
+  // save current map into maps list
+  if(activeMapId && c.data.maps && c.data.maps[activeMapId]){
+    const m=c.data.maps[activeMapId];
+    m.cells=JSON.parse(JSON.stringify(cells));
+    m.texts=JSON.parse(JSON.stringify(texts));
+    m.cols=COLS; m.rows=ROWS;
+    m.mapBg=mapBg; m.mapGrid=mapGrid;
+    m.tokens=JSON.parse(JSON.stringify(mapToks));
+  }
+  c.data.activeMapId=activeMapId;
   c.data.initiative=JSON.parse(JSON.stringify(initiative));
   c.data.curTurn=curTurn; c.data.tokIdC=tokIdC;
   c.updatedAt=now();
@@ -468,22 +488,21 @@ function campLoad(id){
   advs   = JSON.parse(JSON.stringify(d.advs||{}));
   beasts = JSON.parse(JSON.stringify(d.beasts||{}));
   $('notes-ta').value = d.notes||'';
-  cells=d.cells||{}; texts=d.texts||[];
-  COLS=d.cols||80; ROWS=d.rows||60;
-  mapBg=d.mapBg||'#0a0805'; mapGrid=d.mapGrid||'#c9a84c';
-  $('mbg').value=mapBg; $('mgc').value=mapGrid;
-  $('mw').value=COLS; $('mh').value=ROWS;
-  $('map-scroll').style.background=mapBg;
-  mapToks=JSON.parse(JSON.stringify(d.tokens||{}));
+  // migrate old single-map format
+  if(!d.maps){
+    const m=mapBlank('Carte 1', d.cols||80, d.rows||60);
+    m.cells=d.cells||{}; m.texts=d.texts||[];
+    m.mapBg=d.mapBg||'#0a0805'; m.mapGrid=d.mapGrid||'#c9a84c';
+    m.tokens=d.tokens||{};
+    d.maps={[m.id]:m}; d.activeMapId=m.id;
+  }
   initiative=JSON.parse(JSON.stringify(d.initiative||[]));
   curTurn=d.curTurn||0; tokIdC=d.tokIdC||1;
-  selTok=null;
-  $('tl').innerHTML='';
-  Object.values(mapToks).forEach(t=>renderTok(t));
-  initCanvas(); renderTkList();
+  // load active map
+  const mid=d.activeMapId||Object.keys(d.maps)[0];
+  loadMap(d.maps, mid);
   renderAdvList(); renderBeastList();
   renderCampList();
-  history=[JSON.stringify({cells:{},texts:[]})]; hIdx=0;
   $('camp-lbl').textContent=c.name;
 }
 
@@ -866,6 +885,136 @@ let cells={},texts=[];
 let history=[JSON.stringify({cells:{},texts:[]})],hIdx=0;
 let tool='wall',activeClr='#c9a84c',strokeSz=2,showGrid=true;
 let drawing=false,lastCell=null,rectStart=null;
+let activeMapId=null;
+
+function loadMap(mapsObj, mid){
+  activeMapId=mid;
+  const m=mapsObj[mid];
+  if(!m) return;
+  cells=JSON.parse(JSON.stringify(m.cells||{}));
+  texts=JSON.parse(JSON.stringify(m.texts||[]));
+  COLS=m.cols||80; ROWS=m.rows||60;
+  mapBg=m.mapBg||'#0a0805'; mapGrid=m.mapGrid||'#c9a84c';
+  $('mbg').value=mapBg; $('mgc').value=mapGrid;
+  $('mw').value=COLS; $('mh').value=ROWS;
+  mapScroll.style.background=mapBg;
+  mapToks=JSON.parse(JSON.stringify(m.tokens||{}));
+  selTok=null;
+  $('tl').innerHTML='';
+  Object.values(mapToks).forEach(t=>renderTok(t));
+  initCanvas(); renderTkList();
+  history=[JSON.stringify({cells:JSON.parse(JSON.stringify(cells)),texts:JSON.parse(JSON.stringify(texts))})]; hIdx=0;
+  renderMapList();
+}
+
+function saveCurrentMapState(){
+  if(!activeCamp||!activeMapId) return;
+  const d=camps[activeCamp]?.data; if(!d||!d.maps||!d.maps[activeMapId]) return;
+  const m=d.maps[activeMapId];
+  m.cells=JSON.parse(JSON.stringify(cells));
+  m.texts=JSON.parse(JSON.stringify(texts));
+  m.cols=COLS; m.rows=ROWS;
+  m.mapBg=mapBg; m.mapGrid=mapGrid;
+  m.tokens=JSON.parse(JSON.stringify(mapToks));
+}
+
+function renderMapList(){
+  const list=$('map-list'); if(!list) return;
+  if(!activeCamp||!camps[activeCamp]){ list.innerHTML=''; return; }
+  const maps=camps[activeCamp].data.maps||{};
+  const arr=Object.values(maps);
+  list.innerHTML='';
+  arr.forEach(m=>{
+    const active=m.id===activeMapId;
+    const div=document.createElement('div');
+    div.style.cssText=`display:flex;align-items:center;gap:4px;padding:4px 6px;border:1px solid ${active?'var(--gold)':'var(--border)'};border-radius:var(--r);margin-bottom:3px;background:${active?'var(--gold3)':'var(--panel2)'};cursor:pointer;transition:all .12s`;
+    const dot=document.createElement('div');
+    dot.style.cssText=`width:7px;height:7px;border-radius:50%;background:${active?'var(--gold)':'var(--muted2)'};flex-shrink:0`;
+    const info=document.createElement('div'); info.style.cssText='flex:1;min-width:0';
+    const nm=document.createElement('div'); nm.style.cssText="font-family:'Cinzel',serif;font-size:9.5px;color:var(--gold);overflow:hidden;text-overflow:ellipsis;white-space:nowrap"; nm.textContent=m.name;
+    const meta=document.createElement('div'); meta.style.cssText='font-size:7.5px;color:var(--muted)'; meta.textContent=`${m.cols}×${m.rows} cases`;
+    info.append(nm,meta);
+    const acts=document.createElement('div'); acts.style.cssText='display:flex;gap:2px;flex-shrink:0';
+    const btnEd=document.createElement('button'); btnEd.className='btn sm'; btnEd.textContent='✎'; btnEd.title='Renommer / éditer';
+    const btnDel=document.createElement('button'); btnDel.className='btn sm danger'; btnDel.textContent='✕';
+    acts.append(btnEd,btnDel);
+    div.append(dot,info,acts);
+    if(!active) div.addEventListener('click',e=>{ if(e.target===btnEd||e.target===btnDel) return; saveCurrentMapState(); loadMap(maps,m.id); camps[activeCamp].data.activeMapId=m.id; });
+    btnEd.addEventListener('click',e=>{ e.stopPropagation(); openMapEdit(m); });
+    btnDel.addEventListener('click',e=>{ e.stopPropagation(); if(arr.length<=1){ alert('Impossible de supprimer la seule carte.'); return; } dialog('Supprimer',`Supprimer la carte "${m.name}" ?`,[{l:'Annuler'},{l:'Supprimer',d:true,f:()=>{ delete maps[m.id]; const remaining=Object.keys(maps); if(activeMapId===m.id) loadMap(maps,remaining[0]); renderMapList(); }}]); });
+    list.appendChild(div);
+  });
+  // update toolbar label
+  if(activeMapId && camps[activeCamp]?.data?.maps?.[activeMapId]){
+    const mn=camps[activeCamp].data.maps[activeMapId];
+    const lbl=$('map-name-lbl'); if(lbl) lbl.textContent=mn.name+(mn.note?' — '+mn.note.slice(0,40)+(mn.note.length>40?'…':''):'');
+  }
+}
+
+function openMapEdit(m){
+  // small inline editor overlay
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:700;display:flex;align-items:center;justify-content:center';
+  const box=document.createElement('div');
+  box.style.cssText='background:var(--panel);border:1px solid var(--gold2);border-radius:6px;padding:18px;width:300px;display:flex;flex-direction:column;gap:8px';
+
+  const title=document.createElement('div'); title.style.cssText="font-family:'Cinzel',serif;font-size:11px;color:var(--gold);margin-bottom:2px"; title.textContent='Éditer la carte';
+
+  const mkField=(label,val,type='text')=>{
+    const wrap=document.createElement('div'); wrap.style.cssText='display:flex;flex-direction:column;gap:2px';
+    const lbl=document.createElement('label'); lbl.style.cssText='font-size:7.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px'; lbl.textContent=label;
+    const inp=document.createElement('input'); inp.className='inp'; inp.type=type; inp.value=val;
+    wrap.append(lbl,inp); return {wrap,inp};
+  };
+  const fName=mkField('Nom de la carte',m.name);
+  const fCols=mkField('Largeur (cases)',m.cols,'number');
+  const fRows=mkField('Hauteur (cases)',m.rows,'number');
+
+  const fNoteWrap=document.createElement('div'); fNoteWrap.style.cssText='display:flex;flex-direction:column;gap:2px';
+  const fNoteLbl=document.createElement('label'); fNoteLbl.style.cssText='font-size:7.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px'; fNoteLbl.textContent='Note de scénario';
+  const fNoteTa=document.createElement('textarea'); fNoteTa.className='inp'; fNoteTa.rows=3; fNoteTa.style.height='56px'; fNoteTa.placeholder='Description, objectifs, pièges...'; fNoteTa.value=m.note||'';
+  fNoteWrap.append(fNoteLbl,fNoteTa);
+
+  const colorRow=document.createElement('div'); colorRow.style.cssText='display:flex;gap:8px;align-items:center';
+  const mkClr=(label,val)=>{
+    const w=document.createElement('div'); w.style.cssText='display:flex;align-items:center;gap:4px;flex:1';
+    const l=document.createElement('label'); l.style.cssText='font-size:7.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px'; l.textContent=label;
+    const inp=document.createElement('input'); inp.type='color'; inp.value=val; inp.style.cssText='width:26px;height:22px;border:1px solid var(--border2);border-radius:2px;padding:0;cursor:pointer;background:none';
+    w.append(l,inp); return {w,inp};
+  };
+  const fBg=mkClr('Fond',m.mapBg||'#0a0805');
+  const fGr=mkClr('Grille',m.mapGrid||'#c9a84c');
+  colorRow.append(fBg.w,fGr.w);
+
+  const btnRow=document.createElement('div'); btnRow.style.cssText='display:flex;gap:6px;justify-content:flex-end;margin-top:4px';
+  const btnCancel=document.createElement('button'); btnCancel.className='btn sm'; btnCancel.textContent='Annuler';
+  const btnOk=document.createElement('button'); btnOk.className='btn'; btnOk.textContent='✓ Appliquer';
+
+  btnCancel.addEventListener('click',()=>ov.remove());
+  btnOk.addEventListener('click',()=>{
+    m.name=fName.inp.value.trim()||m.name;
+    m.cols=Math.max(20,Math.min(300,+fCols.inp.value||80));
+    m.rows=Math.max(20,Math.min(200,+fRows.inp.value||60));
+    m.note=fNoteTa.value;
+    m.mapBg=fBg.inp.value;
+    m.mapGrid=fGr.inp.value;
+    // if this is active map, apply changes live
+    if(activeMapId===m.id){
+      COLS=m.cols; ROWS=m.rows; mapBg=m.mapBg; mapGrid=m.mapGrid;
+      $('mbg').value=mapBg; $('mgc').value=mapGrid;
+      $('mw').value=COLS; $('mh').value=ROWS;
+      mapScroll.style.background=mapBg;
+      initCanvas();
+    }
+    renderMapList();
+    ov.remove();
+  });
+  btnRow.append(btnCancel,btnOk);
+  box.append(title,fName.wrap,colorRow,fCols.wrap,fRows.wrap,fNoteWrap,btnRow);
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+}
 
 const PCLRS=['#c9a84c','#e8dcc8','#ffffff','#8b1a1a','#c0392b','#1a4a8b','#2980b9','#1a7a3a','#27ae60','#5a1a8b','#8e44ad','#e67e22','#4a4a4a','#2c2c2c','#111','#333','#666','#999'];
 const palEl=$('pal');
@@ -880,6 +1029,17 @@ $('btn-rz').addEventListener('click',()=>{ COLS=Math.max(20,Math.min(300,+$('mw'
 $('mbg').addEventListener('input',function(){ mapBg=this.value; mapScroll.style.background=mapBg; redraw(); });
 $('mgc').addEventListener('input',function(){ mapGrid=this.value; redraw(); });
 $('btn-clrmap').addEventListener('click',()=>dialog('Effacer','Effacer toute la carte ?',[{l:'Annuler'},{l:'Effacer',d:true,f:()=>{ saveH(); cells={}; texts=[]; redraw(); }}]));
+$('btn-map-add').addEventListener('click',()=>{
+  if(!activeCamp){ alert('Créez ou chargez une campagne d\'abord.'); return; }
+  const d=camps[activeCamp].data;
+  if(!d.maps) d.maps={};
+  const m=mapBlank('Carte '+(Object.keys(d.maps).length+1), 80, 60);
+  d.maps[m.id]=m;
+  saveCurrentMapState();
+  loadMap(d.maps, m.id);
+  d.activeMapId=m.id;
+  openMapEdit(m);
+});
 
 function saveH(){ history=history.slice(0,hIdx+1); history.push(JSON.stringify({cells:JSON.parse(JSON.stringify(cells)),texts:JSON.parse(JSON.stringify(texts))})); hIdx=history.length-1; if(history.length>80){ history.shift(); hIdx--; } }
 function initCanvas(){ const W=COLS*CELL,H=ROWS*CELL; canvas.width=W; canvas.height=H; $('map-inner').style.cssText=`position:relative;width:${W}px;height:${H}px;display:inline-block`; $('tl').style.cssText=`position:absolute;top:0;left:0;width:${W}px;height:${H}px;pointer-events:none`; redraw(); }
@@ -1019,7 +1179,7 @@ buildThemeUI();
 campsLoad();
 const ex=Object.values(camps).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));
 if(ex.length){ activeCamp=ex[0].id; campLoad(ex[0].id); }
-else { initCanvas(); renderCampList(); renderAdvList(); renderBeastList(); }
+else { initCanvas(); renderCampList(); renderAdvList(); renderBeastList(); renderMapList(); }
 </script>
 </body>
 </html>
