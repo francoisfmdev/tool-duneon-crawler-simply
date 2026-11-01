@@ -45,6 +45,17 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-b);font-size:
 .w-text textarea{width:100%;min-height:140px;resize:vertical;line-height:1.65}
 .w-empty{color:var(--text3);font-size:13px;text-align:center;padding:28px;border:1px dashed var(--border2);border-radius:var(--r)}
 @media(max-width:700px){.w-body{grid-template-columns:1fr}.w-tags{width:100%}}
+.ab-uses{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--border);background:var(--bg3);flex-wrap:wrap}
+.ab-uses .lbl{font-family:var(--font-ui);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3)}
+.pips{display:flex;gap:6px;flex-wrap:wrap}
+.pip{width:20px;height:20px;border-radius:50%;border:2px solid var(--pc,var(--accent));background:var(--pc,var(--accent));cursor:pointer;padding:0;transition:transform .1s,background .15s}
+.pip:hover{transform:scale(1.15)}
+.pip.off{background:transparent;border-color:var(--border2)}
+.uses-cnt{font-family:var(--font-t);font-size:16px;color:var(--text);min-width:38px}
+.uses-cnt.zero{color:var(--red)}
+.uses-rc{font-size:12px!important;padding:3px 8px!important;width:150px}
+.ab-badge{font-family:var(--font-ui);font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--border2);color:var(--text2);white-space:nowrap}
+.ab-badge.zero{border-color:var(--red);color:var(--red)}
 .save-st{font-size:11px;color:var(--text3);padding:4px 10px;margin-left:auto;align-self:center}
 nav{display:flex;gap:2px;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;position:sticky;top:0;z-index:100;flex-wrap:wrap}
 .nav-btn{padding:10px 14px;font-family:var(--font-ui);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--text2);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
@@ -323,6 +334,7 @@ hr.sep{border:none;border-top:1px solid var(--border);margin:16px 0}
   </div>
   <div class="fx" style="margin-bottom:4px">
     <button class="bta" onclick="addAbility()">+ Ajouter</button>
+    <button class="btn" onclick="resetAllUses()" style="margin-left:auto" title="Remet toutes les utilisations au maximum (ex. après un repos)">↺ Réinitialiser toutes les utilisations</button>
   </div>
   <div class="sub">Sorts</div>
   <div id="splist"></div>
@@ -1061,6 +1073,7 @@ function renderAbilities(){
     const attrOpts=cur().attrs.map(at=>`<option value="${at.id}"${a.attr===at.id?' selected':''}>${esc(at.name)}</option>`).join('');
     const mastOpts=[1,2,3,4,5].map(n=>`<option value="${n}"${(a.mastery||1)===n?' selected':''}>${['Novice +1','Apprenti +2','Compétent +3','Expert +4','Maître +5'][n-1]}</option>`).join('');
     const col=TYPE_COLORS[a.type]||'#888';
+    const u=a.uses&&a.uses.max>0?a.uses:null;
     const card=document.createElement('div');
     card.className='bcard';
     card.style.marginBottom='8px';
@@ -1073,8 +1086,23 @@ function renderAbilities(){
         <input style="background:none;border:none;color:var(--text);font-family:var(--font-t);font-size:15px;flex:1;outline:none;padding:0 6px"
           value="${esc(a.name)}" placeholder="Nom…"
           oninput="cur().abilities[${i}].name=this.value;saveAll()">
+        ${u?`<span class="ab-badge${u.left<=0?' zero':''}" title="Utilisations restantes">${u.left}/${u.max}</span>`
+           :`<button class="bts" onclick="addUses(${i})" title="Ajouter un compteur d'utilisations">+ Utilisations</button>`}
         <button class="btd" onclick="cur().abilities.splice(${i},1);renderAbilities();saveAll()">✕</button>
       </div>
+      ${u?`<div class="ab-uses" style="--pc:${col}">
+        <span class="lbl">Utilisations</span>
+        <div class="pips">${Array.from({length:u.max},(_,k)=>`<button class="pip${k<u.left?'':' off'}" title="${k<u.left?'Disponible — cliquer pour utiliser':'Utilisée — cliquer pour récupérer'}" onclick="togglePip(${i},${k})"></button>`).join('')}</div>
+        <span class="uses-cnt${u.left<=0?' zero':''}">${u.left}/${u.max}</span>
+        <button class="bta" style="padding:4px 12px;font-size:11px${u.left<=0?';opacity:.4;cursor:default':''}" onclick="useAbility(${i})" ${u.left<=0?'disabled':''}>Utiliser</button>
+        <button class="bts" onclick="resetUses(${i})" title="Remettre au maximum">↺ Réinitialiser</button>
+        <span style="width:1px;height:18px;background:var(--border2)"></span>
+        <span class="lbl">Max</span>
+        <button class="bts" onclick="chUsesMax(${i},-1)">−</button>
+        <button class="bts" onclick="chUsesMax(${i},1)">+</button>
+        <input type="text" class="uses-rc" value="${esc(u.recharge||'')}" placeholder="Recharge (ex. repos long)" oninput="cur().abilities[${i}].uses.recharge=this.value;saveAll()">
+        <button class="bti" title="Retirer le compteur" onclick="removeUses(${i})">✕</button>
+      </div>`:''}
       <div class="bbody">
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
           <div class="fld"><label>Attribut lié</label>
@@ -1106,6 +1134,26 @@ function addAbility(){
   if(!cur().abilities)cur().abilities=[];
   cur().abilities.push({type:'sort',name:'',attr:cur().attrs[0]?.id||'ph',dd:'',range:'',dmg:'',mastery:1,notes:''});
   renderAbilities();saveAll();
+}
+
+// UTILISATIONS par sort / compétence / talent : {max, left, recharge}
+function addUses(i){const a=cur().abilities[i];a.uses={max:1,left:1,recharge:''};renderAbilities();saveAll();}
+function removeUses(i){const a=cur().abilities[i];if(!confirm(`Retirer le compteur d'utilisations de « ${a.name||'Sans nom'} » ?`))return;delete a.uses;renderAbilities();saveAll();}
+function chUsesMax(i,d){
+  const u=cur().abilities[i].uses;if(!u)return;
+  const nm=Math.max(1,Math.min(20,u.max+d));
+  if(nm>u.max)u.left+=nm-u.max;   // un nouvel emplacement arrive disponible
+  u.max=nm;u.left=Math.min(u.left,u.max);renderAbilities();saveAll();
+}
+function useAbility(i){const u=cur().abilities[i].uses;if(!u||u.left<=0)return;u.left--;renderAbilities();saveAll();}
+function togglePip(i,k){const u=cur().abilities[i].uses;if(!u)return;u.left=k<u.left?u.left-1:u.left+1;u.left=Math.max(0,Math.min(u.max,u.left));renderAbilities();saveAll();}
+function resetUses(i){const u=cur().abilities[i].uses;if(!u)return;u.left=u.max;renderAbilities();saveAll();}
+function resetAllUses(){
+  const l=(cur().abilities||[]).filter(a=>a.uses&&a.uses.max>0);
+  if(!l.length){alert('Aucun sort ni compétence n\'a de compteur d\'utilisations.');return;}
+  l.forEach(a=>a.uses.left=a.uses.max);renderAbilities();saveAll();
+  const el=document.getElementById('sst');el.textContent=`↺ ${l.length} compteur(s) réinitialisé(s)`;el.style.color='var(--green)';el.style.fontSize='11px';
+  clearTimeout(el._t);el._t=setTimeout(()=>{el.textContent='—';el.style.color='var(--text3)';},2000);
 }
 
 // Garder les stubs pour compatibilité (ne sont plus appelés depuis le HTML)
@@ -2852,6 +2900,7 @@ function exportPDF(){
         a.range?`Portée : ${pesc(a.range)}`:'',
         a.dmg?`Dégâts : ${pesc(a.dmg)}`:'',
         a.mastery?['Novice +1','Apprenti +2','Compétent +3','Expert +4','Maître +5'][(a.mastery||1)-1]:'',
+        a.uses&&a.uses.max>0?`Utilisations : ${a.uses.left}/${a.uses.max}${a.uses.recharge?' ('+pesc(a.uses.recharge)+')':''}`:'',
       ].filter(Boolean).join(' · ');
       return`<div class="abil-row">
         <div class="abil-head"><strong>${pesc(a.name)}</strong>${extras?`<span class="abil-extras">${extras}</span>`:''}</div>
