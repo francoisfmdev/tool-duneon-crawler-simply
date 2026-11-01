@@ -28,6 +28,23 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-b);font-size:
 .cs-form input,.cs-form select{width:100%}
 .cs-prof{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);padding-bottom:7px;white-space:nowrap}
 @media(max-width:700px){.cs-row{grid-template-columns:22px 1fr 1fr;}}
+.w-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.w-card{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--wc,var(--border2));border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.w-head{display:flex;align-items:center;gap:8px;padding:10px 14px;flex-wrap:wrap}
+.w-head select{font-size:11px;padding:3px 6px;border-radius:999px;border-color:var(--wc,var(--border2));color:var(--wc,var(--text2))}
+.w-name{background:none;border:none;color:var(--text);font-family:var(--font-t);font-size:16px;flex:1;min-width:140px;outline:none;padding:2px 0}
+.w-name:focus{border-bottom:1px solid var(--accent2)}
+.w-tags{font-size:12px!important;padding:3px 8px!important;width:200px}
+.w-sum{display:flex;gap:6px;flex-wrap:wrap;padding:0 14px 10px}
+.w-chip{font-size:11px;padding:2px 9px;border-radius:999px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2)}
+.w-chip b{color:var(--accent);font-weight:600;margin-left:4px}
+.w-body{display:grid;grid-template-columns:minmax(240px,1fr) 2fr;gap:16px;padding:12px 14px 14px;border-top:1px solid var(--border)}
+.w-stats .w-st{display:grid;grid-template-columns:1fr 1fr 24px;gap:6px;margin-bottom:6px}
+.w-stats input{width:100%;padding:4px 8px;font-size:12px}
+.w-lbl{font-size:11px;color:var(--text3);margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase}
+.w-text textarea{width:100%;min-height:140px;resize:vertical;line-height:1.65}
+.w-empty{color:var(--text3);font-size:13px;text-align:center;padding:28px;border:1px dashed var(--border2);border-radius:var(--r)}
+@media(max-width:700px){.w-body{grid-template-columns:1fr}.w-tags{width:100%}}
 .save-st{font-size:11px;color:var(--text3);padding:4px 10px;margin-left:auto;align-self:center}
 nav{display:flex;gap:2px;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;position:sticky;top:0;z-index:100;flex-wrap:wrap}
 .nav-btn{padding:10px 14px;font-family:var(--font-ui);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--text2);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
@@ -220,6 +237,7 @@ hr.sep{border:none;border-top:1px solid var(--border);margin:16px 0}
   <button class="nav-btn" data-tab="sorts" onclick="showTab('sorts',this)">Sorts & Compétences</button>
   <button class="nav-btn" data-tab="combat" onclick="showTab('combat',this)">Combat</button>
   <button class="nav-btn" data-tab="journal" onclick="showTab('journal',this)">Journal</button>
+  <button class="nav-btn" data-tab="monde" onclick="showTab('monde',this)">Monde</button>
   <button class="nav-btn" data-tab="oracle" onclick="showTab('oracle',this)">Oracle</button>
   <button class="nav-btn" data-tab="natif" onclick="showTab('natif',this)">Oracle natif</button>
   <button class="nav-btn" data-tab="theme" onclick="showTab('theme',this)" style="display:none">Thème</button>
@@ -370,6 +388,26 @@ hr.sep{border:none;border-top:1px solid var(--border);margin:16px 0}
   </div>
 
   <div id="jlist"></div>
+</div>
+
+<!-- MONDE : objets, monstres, personnages… avec stats libres + texte (par campagne) -->
+<div class="tab" id="tab-monde">
+  <div class="stitle">Monde</div>
+  <div style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.65">
+    Tout ce qui existe dans le monde de la campagne. Chaque fiche a ses propres stats (nom + valeur, libres) et un texte.
+  </div>
+  <div class="w-bar">
+    <button class="bta" onclick="addWorld('objet')">+ Objet</button>
+    <button class="bta" onclick="addWorld('monstre')">+ Monstre</button>
+    <button class="bta" onclick="addWorld('perso')">+ Personnage</button>
+    <button class="btn" onclick="addWorld('autre')">+ Autre</button>
+    <div style="width:1px;height:24px;background:var(--border);margin:0 4px"></div>
+    <span id="w-filters" style="display:flex;gap:6px;flex-wrap:wrap"></span>
+    <input type="text" id="wsearch" placeholder="Rechercher (nom, tag, stat, texte)…" oninput="renderWorld()" style="flex:1;min-width:160px;margin-left:auto">
+    <button class="bts" onclick="wToggleAll(true)">Tout déplier</button>
+    <button class="bts" onclick="wToggleAll(false)">Tout replier</button>
+  </div>
+  <div id="wlist"></div>
 </div>
 
 <!-- MODAL ajout journal -->
@@ -622,7 +660,7 @@ function blank(name='Nouveau personnage'){
 function blankCamp(name='Nouvelle campagne',firstChar='Nouveau personnage'){
   const c=blank(firstChar);
   return{id:uid('k'),name,chars:[c],curCharId:c.id,
-    journal:[],blocs:[],combatants:[],
+    journal:[],blocs:[],combatants:[],world:[],
     oracle:{tables:[],notes:[],od20:JSON.parse(JSON.stringify(DEFAULT_OD20))},
     chaos:5,theme:{}};
 }
@@ -638,7 +676,7 @@ function campFromOldChar(c){
 function normCamp(k){
   if(!Array.isArray(k.chars)||!k.chars.length){const c=blank();k.chars=[c];}
   if(!k.chars.some(c=>c.id===k.curCharId))k.curCharId=k.chars[0].id;
-  ['journal','blocs','combatants'].forEach(f=>{if(!Array.isArray(k[f]))k[f]=[];});
+  ['journal','blocs','combatants','world'].forEach(f=>{if(!Array.isArray(k[f]))k[f]=[];});
   if(!k.oracle)k.oracle={tables:[],notes:[],od20:JSON.parse(JSON.stringify(DEFAULT_OD20))};
   if(!k.theme)k.theme={};if(!k.chaos)k.chaos=5;
   k.chars.forEach(c=>{if(!c.saveProf)c.saveProf={};if(!Array.isArray(c.customSaves))c.customSaves=[];});
@@ -2673,6 +2711,97 @@ function renderNative(){
   root.innerHTML=html||'<div style="color:var(--text3);font-size:13px;text-align:center;padding:24px">Aucune table ne correspond.</div>';
 }
 
+// MONDE — fiches libres par campagne : {id,type,name,tags,stats:[{k,v}],text,open}
+const WTYPES={objet:{label:'Objet',col:'#c8a96e'},monstre:{label:'Monstre',col:'#c05050'},perso:{label:'Personnage',col:'#4a7aaa'},autre:{label:'Autre',col:'#7a7a80'}};
+let wFilter='all';
+function wList(){const k=camp();if(!Array.isArray(k.world))k.world=[];return k.world;}
+function wIdx(id){return wList().findIndex(e=>e.id===id);}
+function wGet(id){return wList().find(e=>e.id===id);}
+function addWorld(type){
+  const e={id:uid('w'),type,name:'',tags:'',stats:[],text:'',open:true};
+  wList().unshift(e);
+  if(wFilter!=='all'&&wFilter!==type)wFilter='all';
+  const q=document.getElementById('wsearch');if(q)q.value='';
+  renderWorld();saveAll();
+  setTimeout(()=>{const n=document.querySelector(`[data-wid="${e.id}"] .w-name`);if(n)n.focus();},30);
+}
+function setWFilter(f){wFilter=f;renderWorld();}
+function wSet(id,field,val){const e=wGet(id);if(!e)return;e[field]=val;saveAll();}
+function wSetType(id,t){const e=wGet(id);if(!e)return;e.type=t;renderWorld();saveAll();}
+function wToggle(id){const e=wGet(id);if(!e)return;e.open=!e.open;renderWorld();saveAll();}
+function wToggleAll(o){wList().forEach(e=>e.open=o);renderWorld();saveAll();}
+function wDel(id){
+  const e=wGet(id);if(!e)return;
+  if(!confirm(`Supprimer « ${e.name||'Sans nom'} » ?`))return;
+  wList().splice(wIdx(id),1);renderWorld();saveAll();
+}
+function wDup(id){
+  const e=wGet(id);if(!e)return;
+  const c=JSON.parse(JSON.stringify(e));c.id=uid('w');c.name=(e.name||'Sans nom')+' (copie)';c.open=true;
+  wList().splice(wIdx(id)+1,0,c);renderWorld();saveAll();
+}
+function wMove(id,d){const l=wList(),i=wIdx(id),j=i+d;if(i<0||j<0||j>=l.length)return;[l[i],l[j]]=[l[j],l[i]];renderWorld();saveAll();}
+function wAddStat(id){
+  const e=wGet(id);if(!e)return;e.stats.push({k:'',v:''});renderWorld();saveAll();
+  setTimeout(()=>{const r=document.querySelectorAll(`[data-wid="${id}"] .w-st`);const last=r[r.length-1];if(last)last.querySelector('input').focus();},30);
+}
+function wSetStat(id,i,f,v){const e=wGet(id);if(!e||!e.stats[i])return;e.stats[i][f]=v;saveAll();}
+function wDelStat(id,i){const e=wGet(id);if(!e)return;e.stats.splice(i,1);renderWorld();saveAll();}
+// Envoi au combat : reprend les stats dont le nom correspond (PV/HP, CA, Physique, Agilité)
+function wToCombat(id){
+  const e=wGet(id);if(!e)return;
+  const find=re=>{const s=(e.stats||[]).find(x=>re.test((x.k||'').trim()));return s?parseInt(s.v):NaN;};
+  const hp=find(/^(pv|hp|points? de vie)$/i),ca=find(/^(ca|classe d.armure|armure)$/i),ph=find(/^physique$/i),ag=find(/^agilit/i);
+  const h=isNaN(hp)?10:hp;
+  camp().combatants.push({name:e.name||'Sans nom',type:e.type==='monstre'?'enemy':'ally',ca:isNaN(ca)?10:ca,hpCur:h,hpMax:h,phys:isNaN(ph)?0:ph,agi:isNaN(ag)?0:ag,init:0,conditions:''});
+  renderCombat();renderIord();saveAll();
+  const el=document.getElementById('sst');el.textContent='→ Ajouté au combat';el.style.color='var(--accent)';el.style.fontSize='11px';
+  clearTimeout(el._t);el._t=setTimeout(()=>{el.textContent='—';el.style.color='var(--text3)';},2000);
+}
+function renderWorld(){
+  const root=document.getElementById('wlist');if(!root)return;
+  const all=wList();
+  const f=document.getElementById('w-filters');
+  if(f){
+    const cnt=t=>all.filter(e=>t==='all'||e.type===t).length;
+    f.innerHTML=[['all','Tout'],...Object.entries(WTYPES).map(([k,v])=>[k,v.label])]
+      .map(([k,l])=>`<button class="jfbtn${wFilter===k?' active':''}" onclick="setWFilter('${k}')">${l} <span style="opacity:.6">${cnt(k)}</span></button>`).join('');
+  }
+  const q=(document.getElementById('wsearch')?.value||'').toLowerCase().trim();
+  const list=all.filter(e=>(wFilter==='all'||e.type===wFilter)&&(!q||[e.name,e.tags,e.text,...(e.stats||[]).map(s=>s.k+' '+s.v)].join(' ').toLowerCase().includes(q)));
+  if(!list.length){
+    root.innerHTML=`<div class="w-empty">${all.length?'Aucune fiche ne correspond.':'Aucune fiche pour l’instant. Crée un objet, un monstre ou un personnage avec les boutons ci-dessus.'}</div>`;return;
+  }
+  root.innerHTML=list.map(e=>{
+    const t=WTYPES[e.type]||WTYPES.autre,id=e.id,open=e.open!==false||!!q;
+    const opts=Object.entries(WTYPES).map(([k,v])=>`<option value="${k}"${k===e.type?' selected':''}>${v.label}</option>`).join('');
+    const stats=(e.stats||[]).map((s,i)=>`<div class="w-st">
+        <input type="text" value="${esc(s.k)}" placeholder="Stat" oninput="wSetStat('${id}',${i},'k',this.value)">
+        <input type="text" value="${esc(s.v)}" placeholder="Valeur" oninput="wSetStat('${id}',${i},'v',this.value)">
+        <button class="bti" title="Retirer" onclick="wDelStat('${id}',${i})">✕</button></div>`).join('');
+    const chips=(e.stats||[]).filter(s=>s.k||s.v).map(s=>`<span class="w-chip">${esc(s.k)}<b>${esc(s.v)}</b></span>`).join('');
+    return`<div class="w-card" data-wid="${id}" style="--wc:${t.col}">
+      <div class="w-head">
+        <select onchange="wSetType('${id}',this.value)" title="Type">${opts}</select>
+        <input class="w-name" value="${esc(e.name)}" placeholder="Nom…" oninput="wSet('${id}','name',this.value)">
+        <input type="text" class="w-tags" value="${esc(e.tags)}" placeholder="Tags (ex. donjon, rare)" oninput="wSet('${id}','tags',this.value)">
+        ${e.type==='monstre'||e.type==='perso'?`<button class="bts" title="Ajouter au combat (reprend PV, CA, Physique, Agilité si présents)" onclick="wToCombat('${id}')">→ Combat</button>`:''}
+        <button class="bts" title="Dupliquer" onclick="wDup('${id}')">Dupliquer</button>
+        <button class="bti" title="Monter" onclick="wMove('${id}',-1)">↑</button>
+        <button class="bti" title="Descendre" onclick="wMove('${id}',1)">↓</button>
+        <button class="bti" title="${open?'Replier':'Déplier'}" onclick="wToggle('${id}')">${open?'▾':'▸'}</button>
+        <button class="btd" onclick="wDel('${id}')">✕</button>
+      </div>
+      ${open?`<div class="w-body">
+        <div class="w-stats"><div class="w-lbl">Stats</div>${stats||'<div style="font-size:12px;color:var(--text3);margin-bottom:6px">Aucune stat.</div>'}
+          <button class="bts" onclick="wAddStat('${id}')">+ Stat</button></div>
+        <div class="w-text"><div class="w-lbl">Texte</div>
+          <textarea placeholder="Description, comportement, histoire, effets…" oninput="wSet('${id}','text',this.value)">${esc(e.text)}</textarea></div>
+      </div>`:(chips?`<div class="w-sum">${chips}</div>`:'')}
+    </div>`;
+  }).join('');
+}
+
 // RENDER ALL
 function renderAll(){
   const c=cur();
@@ -2681,7 +2810,7 @@ function renderAll(){
   sv('hmax',c.hp.max||10);sv('hcur',c.hp.cur||10);sv('cca',c.ca||10);sv('csp',c.speed||'30m');
   updHP();renderAttrs();renderAbilities();renderEquip();renderInv();
   renderCombat();renderIord();renderJournal();
-  renderOD20();renderOTables();renderONotes();renderNative();
+  renderOD20();renderOTables();renderONotes();renderNative();renderWorld();
   document.getElementById('chval').textContent=camp().chaos||5;
   document.getElementById('chlbl').textContent=CLBLS[camp().chaos||5]||'';
 }
